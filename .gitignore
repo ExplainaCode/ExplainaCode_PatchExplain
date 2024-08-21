@@ -1,4 +1,2 @@
-activate_venv.bat
-setup_venv.bat
 .env
 venv/
