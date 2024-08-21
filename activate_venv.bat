@@ -4,9 +4,12 @@
 @REM cd /path/to/your/project
 
 :: Activate virtual environment
-call venv\Scripts\activate
+call new_venv\Scripts\activate
 
 echo Virtual environment activated.
+
+:: Upgrade pip
+python.exe -m pip install --upgrade pip
 
 :: Install dependencies
 pip install -r requirements.txt
