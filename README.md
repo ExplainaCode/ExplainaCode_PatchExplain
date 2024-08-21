@@ -1,7 +1,7 @@
 # ExplainaCode_PatchExplain
 
 [![OpenAI](https://img.shields.io/badge/OpenAI-API%20Key-blue.svg)](https://openai.com)
-[![Gemini](https://img.shields.io/badge/Gemini-API%20Key-green.svg)](https://gemini.com)
+[![Gemini](https://img.shields.io/badge/Gemini-API%20Key-green.svg)](https://ai.google.dev/))
 
 ## Environment Variables
 
