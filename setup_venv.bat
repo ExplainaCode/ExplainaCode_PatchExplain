@@ -4,7 +4,7 @@
 @REM cd /path/to/your/project
 
 :: Create virtual environment
-python -m venv venv
+python -m venv new_venv
 
 :: Activate virtual environment
 
