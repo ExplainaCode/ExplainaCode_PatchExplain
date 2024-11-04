@@ -2,3 +2,4 @@
 venv/
 new_venv/
 Data/output_data/
+*.pkl
