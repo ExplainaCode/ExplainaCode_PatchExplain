@@ -1,0 +1,4 @@
+openai==0.27.0  # Specify the latest version or the one you are using
+pandas  # Specify the version you are using
+google-generativeai  # The version that works with your script
+sentence_transformers
