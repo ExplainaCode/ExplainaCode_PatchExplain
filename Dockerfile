@@ -14,5 +14,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8080
 
 # Command to run the Python script
-CMD ["python", "app/Scripts/gpt_explanation_generation.py"] 
+CMD ["python", "Scripts/gpt_explanation_generation.py"] 
 # CMD ["python", "Scripts/GPT/testing_new.py"]  # Command to run your script
