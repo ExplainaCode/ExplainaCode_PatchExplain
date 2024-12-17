@@ -1,18 +1,9 @@
-
+version: '3.8'
 
 services:
   explanation_generation:
     build: .
     container_name: explanation_generation
-    env_file:
-      - .env  # Ensure the .env file with API keys and email credentials is in the same directory
-    restart: always
-    # You can also map ports if your app were to expose any (not needed for this case)
-    # ports:
-    #   - "8080:8080"
-    # Set the working directory inside the container
-    working_dir: /app
-
-    command: ["python", "Scripts/gpt_explanation_generation.py"]  # Command to run your script
-    # command: ["python", "Scripts/GPT/testing_new.py"]  # Command to run your script
-
+    volumes:
+      - .:/app  # Maps your project directory into /app in the container
+    command: python /app/Scripts/gpt_explanation_generation.py
