@@ -127,8 +127,8 @@ def natural_sort_key(file_name):
 
 
 # Process all chunk files
-files = [file for file in os.listdir(input_dir) if file.endswith('.csv')]
-files.sort(key=natural_sort_key)[:5]  # Sort files in natural order
+files = [file for file in os.listdir(input_dir) if file.endswith('.csv')][:5]
+files.sort(key=natural_sort_key)  # Sort files in natural order
 
 for file in files:
     input_path = os.path.join(input_dir, file)
