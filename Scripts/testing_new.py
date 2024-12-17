@@ -8,7 +8,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 print("Script Directory:", script_dir)
 
 # Define the input directory
-input_dir = os.path.join(script_dir, '../../../Data/1000_record_chunks/')
+input_dir = os.path.join(script_dir, '../Data/1000_record_chunks/')
 input_dir = os.path.normpath(input_dir)
 print("Expected Input Directory:", input_dir)
 
