@@ -231,7 +231,7 @@ private void changeCase(@NotNull Editor editor,int start,int end,char type){
   clientInfoComp.client=EntityRef.NULL;
   clientInfoEntity.saveComponent(clientInfoComp);
   clientEntity.destroy();
-}",The fixed code correctly fetches and updates client information before destroying the client entity.,"The buggy code unnecessarily checks if `clientEntity` exists before performing the disconnect operations, which is redundant and can cause issues if `clientEntity` is null.",0.52436376,
+}",The fixed code correctly fetches and updates client information before destroying the client entity.,"The buggy code unnecessarily checks if `clientEntity` exists before performing the disconnect operations, which is redundant and can cause issues if `clientEntity` is null.",0.52436376,Manually Passed
 231,"public void mouseClicked(EditorMouseEvent event){
   if (!VimPlugin.isEnabled())   return;
   if (event.getArea() == EditorMouseEventArea.EDITING_AREA) {
@@ -267,7 +267,7 @@ private void changeCase(@NotNull Editor editor,int start,int end,char type){
   renderPipelineTaskList.forEach(RenderPipelineTask::execute);
   LwjglGraphics.initOpenGLParams();
   playerCamera.updatePrevViewProjectionMatrix();
-}",The fixed code correctly adds a missing method call to initialize OpenGL parameters for rendering.,"The fixed code enables back-face culling by calling `glDisable(GL_CULL_FACE)`, which prevents rendering issues caused by the lack of back-face culling in the buggy code.",0.58522296,
+}",The fixed code correctly adds a missing method call to initialize OpenGL parameters for rendering.,"The fixed code enables back-face culling by calling `glDisable(GL_CULL_FACE)`, which prevents rendering issues caused by the lack of back-face culling in the buggy code.",0.58522296,Manually Passed
 445,"/** 
  * {@inheritDoc}
  */
@@ -715,7 +715,7 @@ public static TextRange getMotionRange(Editor editor,DataContext context,int cou
     return true;
   }
   return false;
-}","The fixed code simplifies the condition by removing unnecessary `isChunkValidForRender(c)` check, improving readability.","The buggy code incorrectly checks if a chunk is valid for rendering before queuing it for an update, leading to unnecessary filtering; the fixed code removes this check, ensuring all dirty or mesh-less chunks are processed.",0.3957189,
+}","The fixed code simplifies the condition by removing unnecessary `isChunkValidForRender(c)` check, improving readability.","The buggy code incorrectly checks if a chunk is valid for rendering before queuing it for an update, leading to unnecessary filtering; the fixed code removes this check, ensuring all dirty or mesh-less chunks are processed.",0.3957189,Manually Passed
 556,"public EntityRestorer(EngineEntityManager entityManager){
   this.entityManager=entityManager;
 }","EntityRestorer(EngineEntityManager entityManager){
@@ -761,7 +761,7 @@ public static TextRange getMotionRange(Editor editor,DataContext context,int cou
   }
   Vector3i targetBlock=blockComponent.getPosition();
   processUpdateForBlockLocation(targetBlock);
-}","The fixed code adds curly braces for clarity in the if statement, enhancing code readability.","The fixed code adds curly braces around the `return` statement, preventing the code from incorrectly returning early if `blockComponent` is null.",0.38599688,
+}","The fixed code adds curly braces for clarity in the if statement, enhancing code readability.","The fixed code adds curly braces around the `return` statement, preventing the code from incorrectly returning early if `blockComponent` is null.",0.38599688,Manually Passed
 888,"/** 
  * @param unsavedEntities currently loaded persistent entities without owner that have not been saved yet.This method removes entities it saves.
  */
@@ -1203,7 +1203,7 @@ public int moveCaretToNextWordEnd(Editor editor,int count,boolean skipPunc){
     return getElementStyle(element);
   }
   return style;
-}",The fixed code correctly handles the case when 'part' is equal to UIWidget.BASE_PART.,"The buggy code incorrectly attempts to fetch a style using ""String_Node_Str"" as the part name regardless of the actual part, leading to potential mismatches; the fixed code only uses ""String_Node_Str"" when the part is specifically",0.3870752,
+}",The fixed code correctly handles the case when 'part' is equal to UIWidget.BASE_PART.,"The buggy code incorrectly attempts to fetch a style using ""String_Node_Str"" as the part name regardless of the actual part, leading to potential mismatches; the fixed code only uses ""String_Node_Str"" when the part is specifically",0.3870752,Manually Ok
 853,"/** 
  * Get a group of commands by their name. These will vary by the number of parameters they accept
  * @param name The name of the command.
@@ -1387,7 +1387,7 @@ public int moveCaretToNextWordEnd(Editor editor,int count,boolean skipPunc){
     result.addAll(new ReflectionProvider(backdropRenderer,ingameContext).getProperties());
   }
   return result;
-}",The fixed code correctly returns the list of properties for BackdropProvider and BackdropRenderer only.,"The buggy code was unnecessarily calling `getProperties()` on the `FrameBuffersManager`, which is not a valid source of properties, leading to potential errors; the fixed code removes this call.",0.5397718,
+}",The fixed code correctly returns the list of properties for BackdropProvider and BackdropRenderer only.,"The buggy code was unnecessarily calling `getProperties()` on the `FrameBuffersManager`, which is not a valid source of properties, leading to potential errors; the fixed code removes this call.",0.5397718,Manually Passed
 525,"private void handleController1(){
   if (switchedUp(ControllerListener.BUTTON_TRIGGER)) {
     addAction(ControllerId.THREE,ButtonState.UP);
@@ -1530,7 +1530,7 @@ public int moveCaretToNextWordEnd(Editor editor,int count,boolean skipPunc){
     familyType=registerInfo.value();
   }
   return ""String_Node_Str"" + familyType + ""String_Node_Str""+ uri.toString()+ ""String_Node_Str"";
-}",The fixed code correctly handles dynamic family type for the node in the toString method.,"The fixed code correctly retrieves the `familyType` from the `RegisterBlockFamily` annotation, providing a more dynamic and accurate representation of the object.",0.56287,
+}",The fixed code correctly handles dynamic family type for the node in the toString method.,"The fixed code correctly retrieves the `familyType` from the `RegisterBlockFamily` annotation, providing a more dynamic and accurate representation of the object.",0.56287,Manually Passed
 213,"/** 
  * Begin insert at the location of the previous insert
  * @param editor  The editor to insert into
@@ -1903,7 +1903,7 @@ public void insertAtPreviousInsert(Editor editor,DataContext context){
     }
   }
   markAsDoneAndCacheConnection(future,ctx.getChannel());
-}",The fixed code corrects the order of operations to set channel readability before marking the operation as done.,"The fixed code resolves the issue of potentially calling `markAsDoneAndCacheConnection` with a channel that's already been marked as unreadable, by moving the call after the `setReadable(false)` block.",0.49030763,
+}",The fixed code corrects the order of operations to set channel readability before marking the operation as done.,"The fixed code resolves the issue of potentially calling `markAsDoneAndCacheConnection` with a channel that's already been marked as unreadable, by moving the call after the `setReadable(false)` block.",0.49030763,Manually Passed
 532,"@Override public void onDraw(Canvas canvas){
   if (!hasInitialised) {
     hasInitialised=true;
@@ -1928,7 +1928,7 @@ public void insertAtPreviousInsert(Editor editor,DataContext context){
       canvas.drawWidget(section);
     }
   }
-}",The fixed code correctly replaces `canvas.drawBackground()` with `canvas.drawTexture()` for drawing the background image.,"The buggy code was drawing the background before the texture, resulting in the texture being obscured; the fixed code draws the texture first, ensuring it is visible.",0.51916593,
+}",The fixed code correctly replaces `canvas.drawBackground()` with `canvas.drawTexture()` for drawing the background image.,"The buggy code was drawing the background before the texture, resulting in the texture being obscured; the fixed code draws the texture first, ensuring it is visible.",0.51916593,Manually Passed
 581,"public void setWindowedFullscreen(boolean fullscreenWindowed){
   DisplayModeSetting oldValue=this.displayModeSetting;
   this.windowedFullscreen=fullscreenWindowed;
@@ -1982,7 +1982,7 @@ public void insertAtPreviousInsert(Editor editor,DataContext context){
   GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
   CoreRegistry.get(DynamicFBOsManager.class).bindFboColorTexture(DefaultDynamicFBOs.FINAL.getName());
   program.setInt(""String_Node_Str"",texId++,true);
-}","The fixed code correctly accesses the enum constant by using all uppercase letters for ""FINAL"".","The fixed code uses the correct constant `DefaultDynamicFBOs.FINAL` instead of `DefaultDynamicFBOs.Final`, ensuring the correct FBO color texture is bound.",0.25146925,
+}","The fixed code correctly accesses the enum constant by using all uppercase letters for ""FINAL"".","The fixed code uses the correct constant `DefaultDynamicFBOs.FINAL` instead of `DefaultDynamicFBOs.Final`, ensuring the correct FBO color texture is bound.",0.25146925,Manually Passed
 948,"@Override public void run(){
   ChunkView view=getProvider().getViewAround(getPosition());
   if (view == null) {
@@ -2025,7 +2025,7 @@ public void insertAtPreviousInsert(Editor editor,DataContext context){
   finally {
     view.unlock();
   }
-}",The fixed code corrects a method call to improve code readability and maintain consistency with method naming conventions.,"The fixed code uses a dedicated method `getSecondPassView` to retrieve the correct ChunkView for second-pass world generation, preventing potential issues from using a generic view retrieval method.",0.21115945,
+}",The fixed code corrects a method call to improve code readability and maintain consistency with method naming conventions.,"The fixed code uses a dedicated method `getSecondPassView` to retrieve the correct ChunkView for second-pass world generation, preventing potential issues from using a generic view retrieval method.",0.21115945,Manually Ok
 480,"private void respawnPlayer(EntityRef clientEntity){
   ClientComponent client=clientEntity.getComponent(ClientComponent.class);
   EntityRef playerCharacter=client.character;
@@ -2088,7 +2088,7 @@ public void insertAtPreviousInsert(Editor editor,DataContext context){
   super(delegate);
   id=nextId2;
   nextId2++;
-}","The fixed code corrects the constructor declaration by removing ""public,"" making it a valid constructor.","The fixed code removes the unnecessary `public` access modifier, ensuring the `CountDelegate` constructor is only accessible within the same package.",0.5703622,
+}","The fixed code corrects the constructor declaration by removing ""public,"" making it a valid constructor.","The fixed code removes the unnecessary `public` access modifier, ensuring the `CountDelegate` constructor is only accessible within the same package.",0.5703622,Manually Passed
 284,"/** 
  * Generates game manifest with default settings (title, seed) if not specified. Uses default world generator, and modules selection.
  * @TODO : rewrite/fix it when code will be more stable
@@ -2205,7 +2205,7 @@ public static GameManifest createGameManifest(final UniverseWrapper universeWrap
     }
   }
   return result;
-}","The fixed code adds a check to skip non-code modules, improving efficiency and accuracy.","The buggy code incorrectly included subclasses from non-code modules, the fixed code resolves this by only processing subclasses from code modules.",0.5760664,
+}","The fixed code adds a check to skip non-code modules, improving efficiency and accuracy.","The buggy code incorrectly included subclasses from non-code modules, the fixed code resolves this by only processing subclasses from code modules.",0.5760664,Manually Passed
 248,"public void resetVisual(Editor editor){
   EditorData.setLastVisualRange(editor,new VisualRange(visualStart,visualEnd,CommandState.getInstance().getVisualType()));
   CommandState.getInstance().reset();
@@ -2409,7 +2409,7 @@ private boolean activateTargetOrOwnedEntity(EntityRef usedOwnedEntity){
   Object[] opts=new Object[]{new JButton(""String_Node_Str"",loadIcon(""String_Node_Str""))};
   Object opt=opts[0];
   JOptionPane.showOptionDialog(null,mainPanel,""String_Node_Str"",JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE,null,opts,opt);
-}","The fixed code corrects missing button icons, adds dynamic button enabling, and improves button creation clarity.","The fixed code disables the pastebin upload button when the log area is empty, preventing accidental uploads of empty content.",0.3246173,
+}","The fixed code corrects missing button icons, adds dynamic button enabling, and improves button creation clarity.","The fixed code disables the pastebin upload button when the log area is empty, preventing accidental uploads of empty content.",0.3246173,Manually Passed
 815,"/** 
  * Returns a AssetUri which represents a Texture of that color.
  * @param color, including alpha, of the texture to represent.
@@ -2430,7 +2430,7 @@ public static AssetUri getTextureUriForColor(Color color){
   sb.append(""String_Node_Str"");
   appendColorName(sb,color);
   return new AssetUri(AssetType.TEXTURE,""String_Node_Str"",sb.toString());
-}","The fixed code is correct because it corrects a minor typo in the code comment (""color, including alpha"" to ""color including alpha"").",The fixed code is correct because it accurately returns an AssetUri for a texture using the generated color name.,0.5353105,
+}","The fixed code is correct because it corrects a minor typo in the code comment (""color, including alpha"" to ""color including alpha"").",The fixed code is correct because it accurately returns an AssetUri for a texture using the generated color name.,0.5353105,Manually Passed
 965,"@ReceiveEvent public void onPlayerSpawnedEvent(OnPlayerSpawnedEvent event,EntityRef player){
   BlockItemFactory blockFactory=new BlockItemFactory(entityManager);
   EntityRef chest=blockFactory.newInstance(blockManager.getBlockFamily(""String_Node_Str""));
@@ -2652,7 +2652,7 @@ getManager().popScreen();
 }
 }
 );
-}","The fixed code corrects the missing variable initialization and improves code organization, enhancing readability and maintainability.","The fixed code initializes a `UISlider` object before using it, preventing a `NullPointerException`.",0.2783033,
+}","The fixed code corrects the missing variable initialization and improves code organization, enhancing readability and maintainability.","The fixed code initializes a `UISlider` object before using it, preventing a `NullPointerException`.",0.2783033,Manually Good
 854,"@Override public boolean execute(String commandName,List<String> params,EntityRef callingClient){
   if (commandName.isEmpty()) {
     return false;
@@ -2746,7 +2746,7 @@ getManager().popScreen();
       return false;
     }
   }
-}",The fixed code corrects the method call to `getCommand(commandName)` for clarity and simplicity.,The buggy code iterates over a list of commands when it should only use the first one. The fixed code resolves this by directly using the first command in the list.,0.58770406,
+}",The fixed code corrects the method call to `getCommand(commandName)` for clarity and simplicity.,The buggy code iterates over a list of commands when it should only use the first one. The fixed code resolves this by directly using the first command in the list.,0.58770406,Manually Passed
 18,"/** 
  * Generate an ID which will be as collision resistant as possible. Because  {@link con.xpn.xwiki.doc.XWikiAttachment#getId()} returns an int cast to a long, this ID is guaranteed to beunique unless the same attachment is deleted twice in the same second or again in a second which will come around in another 136 years.
  * @param attachment the attachment to get an ID number for.
@@ -2763,7 +2763,7 @@ private static long generateId(final XWikiAttachment attachment,final Date delet
  */
 private static long generateId(final XWikiAttachment attachment,final Date deleteDate){
   return (attachment.getId() << 32) ^ ((deleteDate.getTime() / 1000) & 0x00000000FFFFFFFFL);
-}","The fixed code corrects a typo in the package name, ensuring proper reference to `com.xpn.xwiki.doc.XWikiAttachment`.","The fixed code is correct because it uses a bitwise AND operation to mask the timestamp, ensuring that only the lower 32 bits are used, preventing potential overflow issues.",0.09323348,
+}","The fixed code corrects a typo in the package name, ensuring proper reference to `com.xpn.xwiki.doc.XWikiAttachment`.","The fixed code is correct because it uses a bitwise AND operation to mask the timestamp, ensuring that only the lower 32 bits are used, preventing potential overflow issues.",0.09323348,Manually Passed
 107,"/** 
  * This method -- unlike Future<Reponse>.get() -- will block only as long, as headers arrive. This is useful for large transfers, to examine headers ASAP, and defer body streaming to it's fine destination and prevent unneeded bandwidth consumption. The response here will contain the very 1st response from server, so status code and headers, but it might be incomplete in case of broken servers sending trailing headers. In that case, the ""usual"" Future<Response>.get() method will return complete headers, but multiple invocations of getResponse() will always return the 1st cached, probably incomplete one. Note: the response returned by this method will contain everything <em>except</em> the response body itself, so invoking any method like Response.getResponseBodyXXX() will result in error!
  * @return
@@ -2785,7 +2785,7 @@ public Response getResponse() throws InterruptedException {
   return this.displayModeSetting;
 }","public DisplayModeSetting getDisplayModeSetting(){
   return displayModeSetting;
-}","The fixed code correctly returns the instance variable without using ""this,"" which is unnecessary in this context.","The fixed code removes the unnecessary `this` keyword, making the code more concise and consistent with Java conventions.",0.5455971,
+}","The fixed code correctly returns the instance variable without using ""this,"" which is unnecessary in this context.","The fixed code removes the unnecessary `this` keyword, making the code more concise and consistent with Java conventions.",0.5455971,Manually Passed
 270,"public int moveCaretGotoLineLastEnd(Editor editor,DataContext context,int rawCount,int lline){
   saveJumpLocation(editor,context);
   return moveCaretToLineEnd(editor,rawCount == 0 ? EditorHelper.getLineCount(editor) - 1 : lline);
@@ -3232,7 +3232,7 @@ if (fovSlider != null) {
 WidgetUtil.trySubscribe(this,""String_Node_Str"",widget -> fovSlider.setValue(100.0f));
 }
 WidgetUtil.trySubscribe(this,""String_Node_Str"",button -> getManager().popScreen());
-}","The fixed code is correct as it correctly binds the properties and values, ensuring proper functionality.","The fixed code uses `BindHelper.bindBeanProperty` to bind the `viewDistance` dropdown to the `config.getRendering().getViewDistance()` property, ensuring proper data synchronization.",0.3974316,
+}","The fixed code is correct as it correctly binds the properties and values, ensuring proper functionality.","The fixed code uses `BindHelper.bindBeanProperty` to bind the `viewDistance` dropdown to the `config.getRendering().getViewDistance()` property, ensuring proper data synchronization.",0.3974316,Manually Good
 308,"/** 
  * Processes recorded and pending events. If recordedEvents is not loaded, load it from RecordedEventStore. Processes recorded events for a certain amount of time and only if the timestamp is right.
  */
@@ -3403,7 +3403,7 @@ public Environment(Name... moduleNames){
   whitelistPath=PathManager.getInstance().getHomePath().resolve(""String_Node_Str"");
   this.context=context;
   loadLists();
-}",The fixed code correctly adds a parameter 'context' to the constructor to handle context dependency.,"The fixed code adds a `Context` parameter to the constructor, ensuring the `ServerConnectListManager` has access to the necessary context information for loading lists.",0.5712017,
+}",The fixed code correctly adds a parameter 'context' to the constructor to handle context dependency.,"The fixed code adds a `Context` parameter to the constructor, ensuring the `ServerConnectListManager` has access to the necessary context information for loading lists.",0.5712017,Manually Passed
 50,"public XarInstalledExtension(InstalledExtension installedExtension,XarInstalledExtensionRepository repository,Packager packager) throws IOException {
   super(installedExtension);
   enumeratePages(packager);
@@ -3559,7 +3559,7 @@ logger.error(""String_Node_Str"",getUrn(),e);
  catch (  InterruptedException e) {
     logger.error(""String_Node_Str"",getUrn(),e);
   }
-}",The fixed code is correct because it improves readability by moving variable binding logic to a separate method.,"The buggy code had redundant code for setting different types of float parameters, the fixed code uses a helper function `rebindVaribles` to handle all parameter types efficiently.",0.4771738,
+}",The fixed code is correct because it improves readability by moving variable binding logic to a separate method.,"The buggy code had redundant code for setting different types of float parameters, the fixed code uses a helper function `rebindVaribles` to handle all parameter types efficiently.",0.4771738,Manually Passed
 78,"/** 
  * {@inheritDoc}
  * @see org.xwiki.rendering.macro.Macro#execute(Object,String,MacroTransformationContext)
@@ -3586,7 +3586,7 @@ public List<Block> execute(FootnoteMacroParameters parameters,String content,Mac
   Block putFootnotesMacro=new MacroBlock(PutFootnotesMacro.MACRO_NAME,Collections.<String,String>emptyMap(),false);
   root.addChild(putFootnotesMacro);
   return Collections.emptyList();
-}",The fixed code corrects the issue by using the correct variable name `MACRO_BLOCK_MATCHER` instead of `PutFootnotesMacro.MACRO_NAME`.,"The buggy code creates a new `MacroBlockMatcher` instance every time, which is inefficient; the fixed code uses a static `MACRO_BLOCK_MATCHER` to avoid repeated object creation.",0.4658712,
+}",The fixed code corrects the issue by using the correct variable name `MACRO_BLOCK_MATCHER` instead of `PutFootnotesMacro.MACRO_NAME`.,"The buggy code creates a new `MacroBlockMatcher` instance every time, which is inefficient; the fixed code uses a static `MACRO_BLOCK_MATCHER` to avoid repeated object creation.",0.4658712,Manually Passed
 10,"@Override protected ComponentManager getComponentManagerInternal(){
   EntityReference entityReference=getCurrentReference();
   if (entityReference == null) {
@@ -3817,7 +3817,7 @@ public void initialise(FBOConfig inputFboConfig,FBOConfig outputFboConfig,BaseFB
   fboManager.subscribe(this);
   addDesiredStateChange(new EnableMaterial(""String_Node_Str""));
   this.blurMaterial=getMaterial(new ResourceUrn(""String_Node_Str""));
-}","The fixed code corrects the order of method calls, ensuring setupConditions() is called before other methods for proper initialization.","The buggy code was calling `requiresFBO` before `setupConditions`, which could lead to incorrect FBO retrieval if the conditions were not yet set up. The fixed code calls `setupConditions` before `requiresFBO` to ensure the conditions",0.4536292,
+}","The fixed code corrects the order of method calls, ensuring setupConditions() is called before other methods for proper initialization.","The buggy code was calling `requiresFBO` before `setupConditions`, which could lead to incorrect FBO retrieval if the conditions were not yet set up. The fixed code calls `setupConditions` before `requiresFBO` to ensure the conditions",0.4536292,Manually Passed
 915,"@Override public void update(float delta){
   worldProvider.processPropagation();
   PerformanceMonitor.startActivity(""String_Node_Str"");
@@ -3909,7 +3909,7 @@ public void initialise(FBOConfig inputFboConfig,FBOConfig outputFboConfig,BaseFB
   CoreRegistry.put(Physics.class,worldRenderer.getBulletRenderer());
   worldProvider.getTime().setMilliseconds(worldInfo.getTime());
   return true;
-}","The fixed code corrects the exception handling by logging the appropriate error and returning true. Also, it improves code readability and maintains functionality.",The fixed code resolves the issue of a potential `NullPointerException` by retrieving the `WorldGeneratorManager` before attempting to use it to create a generator.,0.17907313,
+}","The fixed code corrects the exception handling by logging the appropriate error and returning true. Also, it improves code readability and maintains functionality.",The fixed code resolves the issue of a potential `NullPointerException` by retrieving the `WorldGeneratorManager` before attempting to use it to create a generator.,0.17907313,Manually Ok
 87,"void doAsyncConnect(final String url,final Request request,final GrizzlyResponseFuture requestFuture,final CompletionHandler<Connection> connectHandler) throws IOException, ExecutionException, InterruptedException {
   final URI uri=AsyncHttpProviderUtils.createUri(url);
   ProxyServer proxy=getProxyServer(request);
@@ -3948,7 +3948,7 @@ public static AssetUri getTextureUriForWhiteNoise(int size,long seed,int min,int
 public static AssetUri getTextureUriForWhiteNoise(int size,long seed,int min,int max){
   String name=String.format(""String_Node_Str"",GENERATED_NOISE_NAME_PREFIX,""String_Node_Str"",size,seed,min,max);
   return new AssetUri(AssetType.TEXTURE,""String_Node_Str"",name);
-}",The fixed code improves readability by clarifying parameter descriptions and fixing typos.,"The fixed code uses the correct format specifiers in the `String.format` call, ensuring the generated name is valid.",0.38781208,
+}",The fixed code improves readability by clarifying parameter descriptions and fixing typos.,"The fixed code uses the correct format specifiers in the `String.format` call, ensuring the generated name is valid.",0.38781208,Manually Passed
 558,"public EntityStorer(EngineEntityManager entityManager){
   this.entityStoreBuilder=EntityData.EntityStore.newBuilder();
   this.serializer=new EntitySerializer(entityManager);
@@ -3969,7 +3969,7 @@ public static AssetUri getTextureUriForWhiteNoise(int size,long seed,int min,int
     componentIds.put(componentMetadata.getType(),componentIds.size());
   }
   serializer.setComponentIdMapping(componentIds);
-}",The fixed code is correct because it correctly initializes the EntityStorer constructor without specifying the access modifier.,"The fixed code is correct because it is identical to the buggy code, indicating that the issue was likely a misunderstanding or a mistake in identifying the bug.",0.30388942,
+}",The fixed code is correct because it correctly initializes the EntityStorer constructor without specifying the access modifier.,"The fixed code is correct because it is identical to the buggy code, indicating that the issue was likely a misunderstanding or a mistake in identifying the bug.",0.30388942,Manually Passed
 917,"@Before public void setup() throws Exception {
   super.setup();
   regenRules=new SunlightRegenPropagationRules();
@@ -4008,7 +4008,7 @@ public static AssetUri getTextureUriForWhiteNoise(int size,long seed,int min,int
   sunlightPropagator=new StandardBatchPropagator(lightRules,lightWorldView);
   propagator=new SunlightRegenBatchPropagator(regenRules,regenWorldView,sunlightPropagator,lightWorldView);
   air=BlockManager.getAir();
-}",The fixed code corrects the data type mismatch by changing 'solid.setId((byte)5);' to 'solid.setId((short)5);'.,"The buggy code incorrectly sets the block's ID to a byte, but the fixed code correctly sets it to a short.",0.48301166,
+}",The fixed code corrects the data type mismatch by changing 'solid.setId((byte)5);' to 'solid.setId((short)5);'.,"The buggy code incorrectly sets the block's ID to a byte, but the fixed code correctly sets it to a short.",0.48301166,Manually Passed
 215,"public void testEOLWithHighlightSearch(){
   final Options options=Options.getInstance();
   options.resetAllOptions();
@@ -4056,7 +4056,7 @@ public void deactivate(boolean refocusOwningEditor){
     oldGlass.setLayout(oldLayout);
   }
   parent=null;
-}","The fixed code adds a parameter to optionally refocus the owning editor, improving flexibility and clarity.","The fixed code adds a parameter to control whether the focus should be returned to the original component, fixing the issue of always refocusing regardless of the desired behavior.",0.4538632,
+}","The fixed code adds a parameter to optionally refocus the owning editor, improving flexibility and clarity.","The fixed code adds a parameter to control whether the focus should be returned to the original component, fixing the issue of always refocusing regardless of the desired behavior.",0.4538632,Manually Passed
 959,"@Override public UIWidget deserialize(JsonElement json,Type typeOfT,JsonDeserializationContext context) throws JsonParseException {
   JsonObject jsonObject=json.getAsJsonObject();
   String type=jsonObject.get(""String_Node_Str"").getAsString();
@@ -4404,7 +4404,7 @@ public void deactivate(boolean refocusOwningEditor){
     }
   }
   return clazz;
-}","The fixed code correctly retrieves the class loader using a privileged action, ensuring proper access control.",The fixed code uses `AccessController.doPrivileged` to safely obtain the class loader of `clazz` within a security context that allows access to private members.,0.5363573,
+}","The fixed code correctly retrieves the class loader using a privileged action, ensuring proper access control.",The fixed code uses `AccessController.doPrivileged` to safely obtain the class loader of `clazz` within a security context that allows access to private members.,0.5363573,Manually Passed
 696,"@Override public void initialise(){
   lightGeometryShader=worldRenderer.getMaterial(""String_Node_Str"");
   playerCamera=worldRenderer.getActiveCamera();

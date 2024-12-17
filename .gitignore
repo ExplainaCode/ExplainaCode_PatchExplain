@@ -4,3 +4,4 @@ new_venv/
 Data/output_data/
 *.pkl
 Data/pre_processed_files/data0.csv
+Data/raw_files

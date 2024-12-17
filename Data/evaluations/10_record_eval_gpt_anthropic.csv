@@ -1,0 +1,411 @@
+record_number,buggy_code,fixed_code,code_similarity,gpt_explanation,anthropic_explanation,similarity_score
+724,"@Override public void onInitialize(){
+  ResourceUrn uri=getNode().sound;
+  if (uri != null) {
+    Optional<StaticSound> snd=assetManager.getAsset(uri,StaticSound.class);
+    if (snd.isPresent()) {
+      if (actor().hasLocation()) {
+        Vector3f worldPosition=actor().location().getWorldPosition();
+        audioManager.playSound(snd.get(),worldPosition,getNode().volume,AudioManager.PRIORITY_NORMAL,this);
+      }
+ else {
+        audioManager.playSound(snd.get(),new Vector3f(),getNode().volume,AudioManager.PRIORITY_NORMAL,this);
+      }
+      playing=true;
+    }
+  }
+}","@Override public void onInitialize(){
+  ResourceUrn uri=getNode().sound;
+  if (uri != null) {
+    Optional<StaticSound> snd=assetManager.getAsset(uri,StaticSound.class);
+    if (snd.isPresent()) {
+      actor().minion().send(new PlaySoundEvent(snd.get(),getNode().volume));
+      playing=true;
+    }
+  }
+}",0.4982935153583617,"The bug in the original code involves directly playing a sound using `audioManager` without verifying if the sound is currently playing, which may lead to overlapping sounds and unexpected behavior. This is problematic when multiple sounds are triggered in quick succession, causing performance issues or audio glitches. The fixed code replaces direct sound playback with a `PlaySoundEvent`, which properly manages sound state and queuing. This fix is necessary to ensure sound events are handled consistently, improving the overall reliability and functionality of the audio system by preventing sound overlap and ensuring proper sound management.","The original code had an issue with playing sounds when the actor did not have a location set. This would cause a null pointer exception when trying to retrieve the world position. The fix addresses this by removing the location checks and instead sending a PlaySoundEvent to the actor's minion. This event encapsulates the sound and volume information. Now the sound logic is handled in the minion, avoiding the location issue. This resolves the bug and makes the code more robust by playing sounds correctly regardless of actor location being set.",0.587465
+950,"@Override public void generateChunk(Chunk c){
+  FastRandom random=new FastRandom(worldSeed.hashCode() ^ (c.getPos().x + 39L * (c.getPos().y + 39L * c.getPos().z)));
+  for (int y=0; y < c.getChunkSizeY(); y++) {
+    for (int x=0; x < c.getChunkSizeX(); x++) {
+      for (int z=0; z < c.getChunkSizeZ(); z++) {
+        generateGrassAndFlowers(c,x,y,z,random);
+      }
+    }
+  }
+}","@Override public void generateChunk(Chunk c){
+  FastRandom random=new FastRandom(worldSeed.hashCode() ^ (c.getPos().x + 39L * (c.getPos().y + 39L * c.getPos().z)));
+  for (int x=0; x < c.getChunkSizeX(); x++) {
+    for (int z=0; z < c.getChunkSizeZ(); z++) {
+      for (int y=c.getChunkSizeY() - 2; y >= 0; y--) {
+        if (generateGrassAndFlowers(c,x,y,z,random)) {
+          break;
+        }
+      }
+    }
+  }
+}",0.8156565656565656,"The original code incorrectly iterates through the Y-axis from 0 to c.getChunkSizeY(), potentially generating grass and flowers at invalid positions, especially at the top of the chunk. This could lead to errors in terrain generation. The fixed code modifies the Y-loop to start from the second-to-last position and checks if grass and flowers were successfully generated, breaking the loop if so. This ensures that generation happens only in valid positions, improving the chunk's integrity and functionality while preventing unnecessary computations, thus enhancing code reliability.","The original code had nested loops iterating through the chunk dimensions in x, y, z order. This causes grass and flowers to generate from bottom to top, which is incorrect as they should generate from top down. 
+
+The fix reverses the y loop to go from top to bottom, breaking once grass and flowers are generated. This ensures proper top-down generation order. Additionally, the loop was simplified to only iterate y innermost, improving efficiency.
+
+Overall this change fixes the generation order bug, making it more accurate and efficient while keeping the code clean and concise.",0.82087576
+27,"/** 
+ * @param key the key of the cache slot to check.
+ * @param entry the entry to compare to.
+ * @return true, if the given entry has been inserted by another thread, false if the slot is available.
+ * @throws ConflictingInsertionException if another thread use this slot with a different entry.
+ */
+private boolean isAlreadyInserted(String key,SecurityEntry entry) throws ConflictingInsertionException {
+  SecurityCacheEntry oldEntry=cache.get(key);
+  if (oldEntry != null) {
+    if (!oldEntry.getEntry().equals(entry)) {
+      throw new ConflictingInsertionException();
+    }
+    return true;
+  }
+  return false;
+}","private boolean isAlreadyInserted(String key,SecurityEntry entry,Collection<GroupSecurityReference> groups) throws ConflictingInsertionException, ParentEntryEvictedException {
+  SecurityCacheEntry oldEntry=cache.get(key);
+  if (oldEntry != null) {
+    if (!oldEntry.getEntry().equals(entry)) {
+      throw new ConflictingInsertionException();
+    }
+    oldEntry.updateParentGroups(groups);
+    return true;
+  }
+  return false;
+}",0.5831739961759083,"The original code fails to update the parent groups of the existing entry when it is verified as already inserted, which can lead to stale data in the cache. This oversight can result in inconsistent behavior, especially if multiple threads are managing shared data. The fixed code adds a call to `oldEntry.updateParentGroups(groups)` after confirming the entry matches, ensuring that the cache remains updated with relevant group information. This change is necessary for maintaining data integrity and improves the reliability of the caching mechanism by ensuring all relevant data is consistently updated.","The original code did not update the parent groups when an existing entry was found in the cache. This could lead to inconsistent state if the groups changed for an entry, but the cache was not updated. 
+
+The fixed code adds a call to updateParentGroups() when an existing entry is found. This ensures the parent groups are synchronized with the latest values, preventing inconsistent state.
+
+By updating the cache entry groups even on existing entries, the fixed code maintains data integrity and consistency. The additional logic handles the case where group changes happen separately from entry changes. This improvement safeguards against subtle bugs stemming from outdated group references in cache entries.
+
+The fix is necessary for reliability, as it eliminates the possibility of stale group data across code paths modifying either entries or groups. With this targeted change, the cache now properly reflects current entry state.",0.85452604
+975,"private MD5 parse(InputStream stream) throws IOException {
+  BufferedReader reader=new BufferedReader(new InputStreamReader(stream));
+  MD5 md5=new MD5();
+  String line=MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+  md5.version=Integer.parseInt(line.split(""String_Node_Str"",3)[1]);
+  line=MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+  Matcher commandlineMatch=commandLinePattern.matcher(line);
+  if (commandlineMatch.matches()) {
+    md5.commandline=commandlineMatch.group(1);
+  }
+  line=MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+  md5.numJoints=Integer.parseInt(line.split(""String_Node_Str"",3)[1]);
+  line=MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+  md5.numMeshes=Integer.parseInt(line.split(""String_Node_Str"",3)[1]);
+  MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+  readJoints(reader,md5);
+  md5.meshes=new MD5Mesh[md5.numMeshes];
+  for (int i=0; i < md5.numMeshes; ++i) {
+    MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+    md5.meshes[i]=readMesh(reader);
+  }
+  return md5;
+}","private MD5 parse(InputStream stream) throws IOException {
+  BufferedReader reader=new BufferedReader(new InputStreamReader(stream,Charsets.UTF_8));
+  MD5 md5=new MD5();
+  String line=MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+  md5.version=Integer.parseInt(line.split(""String_Node_Str"",3)[1]);
+  line=MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+  Matcher commandlineMatch=commandLinePattern.matcher(line);
+  if (commandlineMatch.matches()) {
+    md5.commandline=commandlineMatch.group(1);
+  }
+  line=MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+  md5.numJoints=Integer.parseInt(line.split(""String_Node_Str"",3)[1]);
+  line=MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+  md5.numMeshes=Integer.parseInt(line.split(""String_Node_Str"",3)[1]);
+  MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+  readJoints(reader,md5);
+  md5.meshes=new MD5Mesh[md5.numMeshes];
+  for (int i=0; i < md5.numMeshes; ++i) {
+    MD5ParserCommon.readToLine(reader,""String_Node_Str"");
+    md5.meshes[i]=readMesh(reader);
+  }
+  return md5;
+}",0.9928400954653938,"The original code lacks character encoding specification while reading the InputStream, which can lead to incorrect data interpretation, especially with non-ASCII characters. This issue is problematic as it may cause parsing errors or unexpected behavior when processing the MD5 data. The fixed code explicitly sets the InputStreamReader to use UTF-8 encoding, ensuring accurate character representation. This change is necessary to guarantee that the input is processed correctly regardless of character set, significantly enhancing the code's reliability and ensuring consistent behavior across different environments.","The bug in the original code is that the InputStreamReader is created without specifying an encoding, which defaults to the platform encoding. This can cause issues parsing the data if it is not encoded using the platform default. 
+
+The fixed code specifies UTF-8 encoding when creating the InputStreamReader. This ensures the character data is interpreted correctly regardless of platform or file encoding. Parsing the data now works reliably.
+
+Specifying the encoding removes ambiguity and potential errors resulting from mismatch between the file contents and assumed encoding. It improves reliability by avoiding bugs due to unsupported characters or mojibake. The concise, targeted fix addresses the issue effectively.",0.6795157
+534,"public void initialise(Canvas canvas){
+  region=canvas.getRegion();
+  int ringWidth=(int)(0.2578125 * region.width() * 2);
+  int innerRadius=(int)(0.2421875 * region.width() * 2);
+  radius=ringWidth + innerRadius;
+  logger.info(""String_Node_Str"" + radius);
+  Rect2i infoRegion=Rect2i.createFromMinAndSize(region.width() / 2,region.height() / 2,innerRadius * 2,innerRadius * 2);
+  for (int q=0; q < sections.length; q++) {
+    for (int i=0; i < 8; i++) {
+      if (sections[submenuLayer][i] != null) {
+        double offset=innerRadius + ringWidth * q;
+        logger.info(offset + ""String_Node_Str"");
+        sections[submenuLayer][i].setCenter(Rect2i.createFromMinAndSize((int)(Math.cos(i * Math.PI / 4 + Math.PI / 8) * offset) + region.width() / 2 - ringWidth / 2,(int)(Math.sin(i * Math.PI / 4 + Math.PI / 8) * offset) + region.width() / 2 - ringWidth / 2,ringWidth,ringWidth));
+        sections[submenuLayer][i].setSelectedTexture(Assets.getTextureRegion(""String_Node_Str"" + i).get());
+        sections[submenuLayer][i].setSectionTexture(Assets.getTextureRegion(""String_Node_Str"" + i).get());
+        sections[submenuLayer][i].setInfoRegion(infoRegion);
+      }
+ else {
+        sections[submenuLayer][i]=new UIRadialEmpty();
+      }
+    }
+  }
+}","public void initialise(Canvas canvas){
+  region=canvas.getRegion();
+  int ringWidth=(int)(0.2578125 * region.width());
+  int innerRadius=(int)(0.2421875 * region.width());
+  double offset=innerRadius + ringWidth / 2;
+  radius=ringWidth + innerRadius;
+  Rect2i infoRegion=Rect2i.createFromMinAndSize(region.width() / 2,region.height() / 2,innerRadius * 2,innerRadius * 2);
+  for (int q=0; q < sections.length; q++) {
+    for (int i=0; i < 8; i++) {
+      if (sections[q][i] != null) {
+        sections[q][i].setCenter(Rect2i.createFromMinAndSize((int)(Math.cos(i * Math.PI / 4 + Math.PI / 8) * offset),(int)(Math.sin(i * Math.PI / 4 + Math.PI / 8) * offset),region.width() / 2,region.height() / 2));
+        sections[q][i].setSelectedTexture(Assets.getTextureRegion(""String_Node_Str"" + i).get());
+        sections[q][i].setSectionTexture(Assets.getTextureRegion(""String_Node_Str"" + i).get());
+        sections[q][i].setInfoRegion(infoRegion);
+      }
+ else {
+        sections[q][i]=new UIRadialEmpty();
+      }
+    }
+  }
+}",0.5685323931247246,"The original code incorrectly uses the `submenuLayer` index in nested loops, which can lead to `ArrayIndexOutOfBoundsException` if `submenuLayer` exceeds the bounds of the `sections` array. This issue arises when accessing `sections[submenuLayer][i]`, potentially causing runtime errors. The fix changes all instances to use the outer loop variable `q`, ensuring proper indexing throughout the entire array. This correction is necessary to maintain valid array access, enhancing the code's reliability and preventing crashes during execution. Overall, the fix improves functionality by ensuring consistent behavior across all sections.","The original code had an issue calculating the offset for each menu section, using the ringWidth multiplied by the layer index q. This caused the sections to be positioned incorrectly. 
+
+The fix updates the offset calculation to use a constant value based on the innerRadius and ringWidth. It also removes the incorrect string concatenations in the logger calls and simplifies some variable usage.
+
+Now each section will be placed at the proper offset from the center, spaced evenly around the concentric menu rings. This resolves the positioning bug and improves the reliability of the menu initialization. The simplified variable usage also improves code clarity.",0.4691655
+68,"@Override public boolean equals(Object object){
+  if (object instanceof ActionExecutedEvent) {
+    return getActionName().equals(((ActionExecutedEvent)object).getActionName());
+  }
+  return getActionName().equals(object);
+}","@Override public boolean equals(Object object){
+  if (object != null && getClass().isAssignableFrom(object.getClass())) {
+    return StringUtils.equals(getActionName(),((ActionExecutionEvent)object).getActionName());
+  }
+  return false;
+}",0.4902386117136659,"The bug in the original code allows `null` objects to pass without a check, leading to a potential `NullPointerException`. Additionally, it incorrectly compares objects of different types by assuming any object can be compared by `getActionName()`, which may not be valid. The fixed code ensures that the object is not null and checks if it is of the correct class type before comparison. This fix is necessary as it prevents runtime exceptions and ensures only comparable objects are evaluated, enhancing code reliability and correctness in equality checks.","The bug in the original code is an incorrect type check and unsafe casting, which can cause ClassCastExceptions. The fixed code checks if the object is assignable from the current class before casting, avoiding exceptions. It also checks for null before accessing methods, avoiding NullPointerExceptions. The use of StringUtils.equals handles null checks internally, improving robustness. This fix improves reliability by preventing avoidable exceptions during equals comparisons. Overall it makes the equals implementation more robust and safe against invalid inputs.",0.6985997
+629,"@Override public void applyParameters(Material program){
+  super.applyParameters(program);
+  DynamicFBOsManager dynamicFBOsManager=CoreRegistry.get(DynamicFBOsManager.class);
+  ShadowMapResolutionDependentFBOs shadowMapResolutionDependentFBOs=CoreRegistry.get(ShadowMapResolutionDependentFBOs.class);
+  FBO sceneOpaque=dynamicFBOsManager.get(DefaultDynamicFBOs.ReadOnlyGBuffer.getName());
+  int texId=0;
+  if (sceneOpaque != null) {
+    GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
+    sceneOpaque.bindDepthTexture();
+    program.setInt(""String_Node_Str"",texId++,true);
+    GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
+    sceneOpaque.bindNormalsTexture();
+    program.setInt(""String_Node_Str"",texId++,true);
+    GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
+    sceneOpaque.bindLightBufferTexture();
+    program.setInt(""String_Node_Str"",texId++,true);
+  }
+  if (CoreRegistry.get(Config.class).getRendering().isDynamicShadows()) {
+    GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
+    shadowMapResolutionDependentFBOs.bindFboDepthTexture(ShadowMapNode.SHADOW_MAP_URN);
+    program.setInt(""String_Node_Str"",texId++,true);
+    Camera lightCamera=CoreRegistry.get(WorldRenderer.class).getLightCamera();
+    Camera activeCamera=CoreRegistry.get(WorldRenderer.class).getActiveCamera();
+    if (lightCamera != null && activeCamera != null) {
+      program.setMatrix4(""String_Node_Str"",lightCamera.getViewProjectionMatrix(),true);
+      program.setMatrix4(""String_Node_Str"",activeCamera.getInverseViewProjectionMatrix(),true);
+      Vector3f activeCameraToLightSpace=new Vector3f();
+      activeCameraToLightSpace.sub(activeCamera.getPosition(),lightCamera.getPosition());
+      program.setFloat3(""String_Node_Str"",activeCameraToLightSpace.x,activeCameraToLightSpace.y,activeCameraToLightSpace.z,true);
+    }
+    if (CoreRegistry.get(Config.class).getRendering().isCloudShadows()) {
+      Texture clouds=Assets.getTexture(""String_Node_Str"").get();
+      GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
+      glBindTexture(GL11.GL_TEXTURE_2D,clouds.getId());
+      program.setInt(""String_Node_Str"",texId++,true);
+    }
+  }
+}","@Override public void applyParameters(Material program){
+  super.applyParameters(program);
+  DynamicFBOsManager dynamicFBOsManager=CoreRegistry.get(DynamicFBOsManager.class);
+  ShadowMapResolutionDependentFBOs shadowMapResolutionDependentFBOs=CoreRegistry.get(ShadowMapResolutionDependentFBOs.class);
+  FBO sceneOpaque=dynamicFBOsManager.get(DefaultDynamicFBOs.READ_ONLY_GBUFFER.getName());
+  int texId=0;
+  if (sceneOpaque != null) {
+    GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
+    sceneOpaque.bindDepthTexture();
+    program.setInt(""String_Node_Str"",texId++,true);
+    GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
+    sceneOpaque.bindNormalsTexture();
+    program.setInt(""String_Node_Str"",texId++,true);
+    GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
+    sceneOpaque.bindLightBufferTexture();
+    program.setInt(""String_Node_Str"",texId++,true);
+  }
+  if (CoreRegistry.get(Config.class).getRendering().isDynamicShadows()) {
+    GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
+    shadowMapResolutionDependentFBOs.bindFboDepthTexture(ShadowMapNode.SHADOW_MAP_URN);
+    program.setInt(""String_Node_Str"",texId++,true);
+    Camera lightCamera=CoreRegistry.get(WorldRenderer.class).getLightCamera();
+    Camera activeCamera=CoreRegistry.get(WorldRenderer.class).getActiveCamera();
+    if (lightCamera != null && activeCamera != null) {
+      program.setMatrix4(""String_Node_Str"",lightCamera.getViewProjectionMatrix(),true);
+      program.setMatrix4(""String_Node_Str"",activeCamera.getInverseViewProjectionMatrix(),true);
+      Vector3f activeCameraToLightSpace=new Vector3f();
+      activeCameraToLightSpace.sub(activeCamera.getPosition(),lightCamera.getPosition());
+      program.setFloat3(""String_Node_Str"",activeCameraToLightSpace.x,activeCameraToLightSpace.y,activeCameraToLightSpace.z,true);
+    }
+    if (CoreRegistry.get(Config.class).getRendering().isCloudShadows()) {
+      Texture clouds=Assets.getTexture(""String_Node_Str"").get();
+      GL13.glActiveTexture(GL13.GL_TEXTURE0 + texId);
+      glBindTexture(GL11.GL_TEXTURE_2D,clouds.getId());
+      program.setInt(""String_Node_Str"",texId++,true);
+    }
+  }
+}",0.994358251057828,"The bug in the original code is the incorrect constant name `DefaultDynamicFBOs.ReadOnlyGBuffer.getName()`, which should be `DefaultDynamicFBOs.READ_ONLY_GBUFFER.getName()`. This typographical error could lead to runtime exceptions if the constant is not recognized. The fixed code corrects this name, ensuring the proper framebuffer object is retrieved. This fix is necessary to prevent potential null pointer exceptions and ensure the correct resources are accessed. Overall, this change enhances the code's reliability by ensuring that the appropriate framebuffer is used, preventing unexpected rendering issues.","The original code uses the constant ""ReadOnlyGBuffer.getName()"" to get the FBO, which is incorrect. The fixed code replaces this with the correct constant ""READ_ONLY_GBUFFER"", fixing the bug. This ensures the right FBO is retrieved from the manager for binding textures, preventing errors. The fix improves reliability by using the proper constant name.",0.6233117
+422,"@Override public void preSave(){
+  if (clientHeldItem != EntityRef.NULL) {
+    clientHeldItem.destroy();
+  }
+}","@Override public void preSave(){
+  if (currentHeldItem != EntityRef.NULL) {
+    currentHeldItem.destroy();
+  }
+}",0.954954954954955,"The bug in the original code is that it references `clientHeldItem` instead of `currentHeldItem`, leading to a potential NullPointerException if `clientHeldItem` is not initialized correctly. This is problematic as it disrupts the save process when the wrong item is being destroyed, potentially leaving dangling references. The fix changes `clientHeldItem` to `currentHeldItem`, ensuring the correct object is destroyed before saving. This specific fix is necessary to maintain the integrity of the save operation, thereby improving the code's reliability and preventing runtime errors during item management.","The bug in the original code is using the wrong field name 'clientHeldItem' instead of 'currentHeldItem' to refer to the currently held item. This would cause a null reference error when trying to destroy the held item before saving, since clientHeldItem is likely uninitialized. The fix corrects this by changing the field access to 'currentHeldItem', ensuring the currently held item is properly destroyed before saving to prevent inconsistencies. This simple name change fixes the root cause of potential null reference errors during the presave cleanup phase, improving reliability.",0.86835825
+661,"private void updateTreeView(Tree tree){
+  Iterator it=tree.getDepthFirstIterator(false);
+  while (it.hasNext()) {
+    ((Tree<JsonTreeNode>)it.next()).setExpanded(true);
+  }
+  editorTreeView.setModel(tree.copy());
+}","private void updateTreeView(JsonTree tree){
+  JsonTree fixedTree=JsonTreeConverter.serialize(JsonTreeConverter.deserialize(tree));
+  Iterator it=fixedTree.getDepthFirstIterator(false);
+  while (it.hasNext()) {
+    ((JsonTree)it.next()).setExpanded(true);
+  }
+  editorTreeView.setModel(fixedTree.copy());
+}",0.7475915221579962,"The original code improperly assumes the `Tree` type when it should be using `JsonTree`, leading to potential `ClassCastException` errors during iteration. This bug is problematic because it may occur when handling non-`JsonTree` objects, disrupting the tree view update process. The fixed code correctly deserializes and serializes the `JsonTree`, ensuring compatibility with the iterator. This change is necessary as it guarantees that the iteration operates on the correct object type, preventing runtime exceptions. Overall, this fix enhances the code's reliability by ensuring that tree updates are handled safely and accurately.","The bug in the original code is that it attempts to cast the generic Tree to a specific JsonTreeNode implementation, which may fail or cause errors if the actual Tree type differs. The fixed code first serializes and deserializes the Tree to convert it into a known JsonTree type before iterating and casting. This ensures the Tree has a consistent expected structure that matches the casts, preventing potential ClassCastExceptions or other issues. The fix standardizes the Tree format to improve reliability when traversing and manipulating the data structure.",0.8592018
+23,"/** 
+ * Loads the list of uploaded files in the context if there are any uploaded files.
+ * @param uploadMaxSize Maximum size of the uploaded files.
+ * @param uploadSizeThreashold Threashold over which the file data should be stored on disk, and not in memory.
+ * @param tempdir Temporary directory to store the uploaded files that are not kept in memory.
+ * @param context Context of the request.
+ * @throws XWikiException if the request could not be parsed, or the maximum file size was reached.
+ * @see FileUploadPluginApi#loadFileList(long,int,String)
+ */
+public void loadFileList(long uploadMaxSize,int uploadSizeThreashold,String tempdir,XWikiContext context) throws XWikiException {
+  LOGGER.debug(""String_Node_Str"");
+  if (context.get(FILE_LIST_KEY) != null) {
+    LOGGER.debug(""String_Node_Str"");
+    return;
+  }
+  DiskFileItemFactory factory=new DiskFileItemFactory(){
+    @Override public FileItem createItem(    String fieldName,    String contentType,    boolean isFormField,    String fileName){
+      try {
+        final DiskFileItem item=(DiskFileItem)super.createItem(fieldName,contentType,isFormField,fileName);
+        item.getOutputStream();
+        item.getStoreLocation().deleteOnExit();
+        return item;
+      }
+ catch (      IOException e) {
+        String path=System.getProperty(""String_Node_Str"");
+        if (super.getRepository() != null) {
+          path=super.getRepository().getPath();
+        }
+        throw new RuntimeException(""String_Node_Str"" + ""String_Node_Str"" + path + ""String_Node_Str"");
+      }
+    }
+  }
+;
+  factory.setSizeThreshold(uploadSizeThreashold);
+  if (tempdir != null) {
+    File tempdirFile=new File(tempdir);
+    if (tempdirFile.mkdirs() && tempdirFile.canWrite()) {
+      factory.setRepository(tempdirFile);
+    }
+  }
+  FileUpload fileupload=new ServletFileUpload(factory);
+  RequestContext reqContext=new ServletRequestContext(context.getRequest().getHttpServletRequest());
+  fileupload.setSizeMax(uploadMaxSize);
+  try {
+    @SuppressWarnings(""String_Node_Str"") List<FileItem> list=fileupload.parseRequest(reqContext);
+    if (list.size() > 0) {
+      LOGGER.info(""String_Node_Str"" + list.size() + ""String_Node_Str"");
+    }
+    context.put(FILE_LIST_KEY,list);
+  }
+ catch (  FileUploadBase.SizeLimitExceededException e) {
+    throw new XWikiException(XWikiException.MODULE_XWIKI_APP,XWikiException.ERROR_XWIKI_APP_FILE_EXCEPTION_MAXSIZE,""String_Node_Str"");
+  }
+catch (  Exception e) {
+    throw new XWikiException(XWikiException.MODULE_XWIKI_APP,XWikiException.ERROR_XWIKI_APP_UPLOAD_PARSE_EXCEPTION,""String_Node_Str"",e);
+  }
+}","/** 
+ * Loads the list of uploaded files in the context if there are any uploaded files.
+ * @param uploadMaxSize Maximum size of the uploaded files.
+ * @param uploadSizeThreashold Threashold over which the file data should be stored on disk, and not in memory.
+ * @param tempdir Temporary directory to store the uploaded files that are not kept in memory.
+ * @param context Context of the request.
+ * @throws XWikiException if the request could not be parsed, or the maximum file size was reached.
+ * @see FileUploadPluginApi#loadFileList(long,int,String)
+ */
+public void loadFileList(long uploadMaxSize,int uploadSizeThreashold,String tempdir,XWikiContext context) throws XWikiException {
+  LOGGER.debug(""String_Node_Str"");
+  if (context.get(FILE_LIST_KEY) != null) {
+    LOGGER.debug(""String_Node_Str"");
+    return;
+  }
+  DiskFileItemFactory factory=new DiskFileItemFactory(){
+    public FileItem createItem(    String fieldName,    String contentType,    boolean isFormField,    String fileName){
+      try {
+        final DiskFileItem item=(DiskFileItem)super.createItem(fieldName,contentType,isFormField,fileName);
+        item.getOutputStream();
+        item.getStoreLocation().deleteOnExit();
+        return item;
+      }
+ catch (      IOException e) {
+        String path=System.getProperty(""String_Node_Str"");
+        if (super.getRepository() != null) {
+          path=super.getRepository().getPath();
+        }
+        throw new RuntimeException(""String_Node_Str"" + ""String_Node_Str"" + path + ""String_Node_Str"");
+      }
+    }
+  }
+;
+  factory.setSizeThreshold(uploadSizeThreashold);
+  if (tempdir != null) {
+    File tempdirFile=new File(tempdir);
+    if (tempdirFile.mkdirs() && tempdirFile.canWrite()) {
+      factory.setRepository(tempdirFile);
+    }
+  }
+  FileUpload fileupload=new ServletFileUpload(factory);
+  RequestContext reqContext=new ServletRequestContext(context.getRequest().getHttpServletRequest());
+  fileupload.setSizeMax(uploadMaxSize);
+  try {
+    @SuppressWarnings(""String_Node_Str"") List<FileItem> list=fileupload.parseRequest(reqContext);
+    if (list.size() > 0) {
+      LOGGER.info(""String_Node_Str"" + list.size() + ""String_Node_Str"");
+    }
+    context.put(FILE_LIST_KEY,list);
+  }
+ catch (  FileUploadBase.SizeLimitExceededException e) {
+    throw new XWikiException(XWikiException.MODULE_XWIKI_APP,XWikiException.ERROR_XWIKI_APP_FILE_EXCEPTION_MAXSIZE,""String_Node_Str"");
+  }
+catch (  Exception e) {
+    throw new XWikiException(XWikiException.MODULE_XWIKI_APP,XWikiException.ERROR_XWIKI_APP_UPLOAD_PARSE_EXCEPTION,""String_Node_Str"",e);
+  }
+}",0.9980657640232108,"The original code had a bug due to the use of an anonymous inner class that could cause issues when `createItem` was called, as it relied on the superclass's repository without proper error handling. This could lead to runtime exceptions if the repository was not set correctly. The fixed code ensures better handling of the repository, improving stability. The changes provide a more reliable way to create file items, preventing potential crashes and enhancing the overall functionality by ensuring that file uploads are processed without unexpected failures. This fix improves code reliability and maintainability.","The original code had an unchecked raw exception type in the createItem() method declaration, which could lead to exceptions being swallowed unintentionally. 
+
+The fix makes the following changes:
+
+1) Specifies the exact IOException type instead of a raw Exception in the createItem() method declaration. This avoids masking other exceptions and improves handling of IO issues.
+
+2) By declaring the specific expected exception type, it enforces proper exception handling in the code. Any other exceptions not caught will bubble up and fail fast, improving reliability.
+
+3) Catching IOException specifically also allows handling IO errors separately from other types of exceptions, making the code more robust. 
+
+Overall, this fix improves type safety, reduces potential exception swallowing, and enables better exception handling by catching and throwing specific types where applicable. It enhances code quality without functional changes.",0.6325141
