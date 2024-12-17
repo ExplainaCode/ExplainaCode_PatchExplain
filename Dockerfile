@@ -5,7 +5,9 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Copy the Scripts folder into the container
-COPY ./Scripts /app/Scripts
+
+COPY Scripts/gpt_explanation_generation.py /app/Scripts/gpt_explanation_generation.py
+
 
 # Install the required dependencies
 RUN pip install --no-cache-dir -r requirements.txt
