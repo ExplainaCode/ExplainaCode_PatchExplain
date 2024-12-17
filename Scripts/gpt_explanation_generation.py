@@ -2,9 +2,15 @@ import openai
 import pandas as pd
 import os
 import re
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Load environment variables
 OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
+
+print("API Key Loaded:", OPEN_AI_API_KEY)
 
 # Set OpenAI API Key
 openai.api_key = OPEN_AI_API_KEY
