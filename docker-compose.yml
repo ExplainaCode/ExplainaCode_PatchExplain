@@ -1,9 +1,0 @@
-
-
-services:
-  explanation_generation:
-    build: .
-    container_name: explanation_generation
-    volumes:
-      - ./Data:/app/Data
-    command: python /app/Scripts/gpt_explanation_generation.py
