@@ -10,8 +10,8 @@ OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
 openai.api_key = OPEN_AI_API_KEY
 
 # Directories
-input_dir = '.../Data/1000_record_chunks/'  # Input folder with chunk files
-output_dir = '.../Data/100k_dataset/gpt/'  # Output folder to save explanations
+input_dir = '..../Data/1000_record_chunks/'  # Input folder with chunk files
+output_dir = '..../Data/100k_dataset/gpt/'  # Output folder to save explanations
 os.makedirs(output_dir, exist_ok=True)  # Ensure output directory exists
 
 sample_size = 1  # Sample size for each chunk
