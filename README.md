@@ -1,6 +1,6 @@
 # ExplainaCode_PatchExplain
 [![OpenAI](https://img.shields.io/badge/OpenAI-API%20Key-blue.svg)](https://openai.com)
-[![Anthropy Claude](https://img.shields.io/badge/Anthropy%20Claude-API%20Key-yellow.svg)](https://www.anthropic.com/)
+[![Anthropic Claude](https://img.shields.io/badge/Anthropy%20Claude-API%20Key-yellow.svg)](https://www.anthropic.com/)
 ## Environment Variables
 To run this project, you will need to add the following environment variables to your `.env` file:
 - `OPEN_AI_API_KEY`
