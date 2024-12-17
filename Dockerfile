@@ -15,4 +15,4 @@ EXPOSE 8080
 
 # Command to run the Python script
 # CMD ["python", "Scripts/GPT/gpt_explanation_generation.py"] 
-CMD ["python", "Scripts/GPT/testing.py"]  # Command to run your script
+CMD ["python", "Scripts/GPT/testing_new.py"]  # Command to run your script

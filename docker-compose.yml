@@ -14,5 +14,5 @@ services:
     working_dir: /app
 
     # command: ["python", "Scripts/GPT/gpt_explanation_generation.py"]  # Command to run your script
-    command: ["python", "Scripts/GPT/testing.py"]  # Command to run your script
+    command: ["python", "Scripts/GPT/testing_new.py"]  # Command to run your script
 
