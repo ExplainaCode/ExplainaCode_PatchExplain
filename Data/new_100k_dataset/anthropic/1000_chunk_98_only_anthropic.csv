@@ -1,0 +1,970 @@
+record_number,buggy_code,fixed_code,anthropic_explanation
+97001,"/** 
+ * Prepares this Entity2D for a new frame. This method is not meant to be called by the user and is called by the SceneGraph.
+ * @param delta The delta time.
+ */
+public void preUpdate(float delta){
+  update(delta);
+  if (velocity == Vector2.ZERO)   return;
+  position=position.add(velocity);
+  polygon.setPosition(position);
+  getLocalTransform().reset().rotate(Vector3.AXIS_Z,polygon.getRotation()).translate(position);
+}","/** 
+ * Prepares this Entity2D for a new frame. This method is not meant to be called by the user and is called by the SceneGraph.
+ * @param delta The delta time.
+ */
+public void preUpdate(float delta){
+  update(delta);
+  if (velocity == Vector2.ZERO)   return;
+  position=position.add(velocity);
+  polygon.setPosition(position);
+  getLocalTransform().reset().translate(getPosition().subtract(getCenter())).rotate(Vector3.AXIS_Z,polygon.getRotation()).translate(getCenter());
+}","The original code incorrectly applies transformation by directly translating to the position, which can cause misalignment between the polygon's position and its actual geometric center. The fixed code introduces a two-step translation process that first moves the transform relative to the object's center, then rotates around the Z-axis, and finally translates back to the center, ensuring proper positioning and rotation. This approach preserves the object's geometric integrity and provides a more accurate transformation that maintains the polygon's intended spatial relationship."
+97002,"public void drawTexture2d(Texture texture,Vector2 p,Color color){
+  Texture current=Texture.CURRENT;
+  flush();
+  texture.bind();
+{
+    vertex(p.getX(),p.getY(),0,1);
+    color(color);
+    texCoord(texture.getMinU(),texture.getMinV());
+    vertex(p.getX() + texture.getWidth(),p.getY(),0,1);
+    color(color);
+    texCoord(texture.getMaxU(),texture.getMinV());
+    vertex(p.getX(),p.getY() + texture.getHeight(),0,1);
+    color(color);
+    texCoord(texture.getMinU(),texture.getMaxV());
+  }
+{
+    vertex(p.getX() + texture.getWidth(),p.getY(),0,1);
+    color(color);
+    texCoord(texture.getMaxU(),texture.getMinV());
+    vertex(p.getX(),p.getY() + texture.getHeight(),0,1);
+    color(color);
+    texCoord(texture.getMinU(),texture.getMaxV());
+    vertex(p.getX() + texture.getWidth(),p.getY() + texture.getHeight(),0,1);
+    color(color);
+    texCoord(texture.getMaxU(),texture.getMaxV());
+  }
+  flush();
+  current.bind();
+}","public void drawTexture2d(Texture texture,Vector2 p,Color color){
+  Texture current=Texture.CURRENT;
+  texture.bind();
+  begin();
+{
+    vertex(p.getX(),p.getY(),0,1);
+    color(color);
+    texCoord(texture.getMinU(),texture.getMinV());
+    vertex(p.getX() + texture.getWidth(),p.getY(),0,1);
+    color(color);
+    texCoord(texture.getMaxU(),texture.getMinV());
+    vertex(p.getX(),p.getY() + texture.getHeight(),0,1);
+    color(color);
+    texCoord(texture.getMinU(),texture.getMaxV());
+  }
+{
+    vertex(p.getX() + texture.getWidth(),p.getY(),0,1);
+    color(color);
+    texCoord(texture.getMaxU(),texture.getMinV());
+    vertex(p.getX(),p.getY() + texture.getHeight(),0,1);
+    color(color);
+    texCoord(texture.getMinU(),texture.getMaxV());
+    vertex(p.getX() + texture.getWidth(),p.getY() + texture.getHeight(),0,1);
+    color(color);
+    texCoord(texture.getMaxU(),texture.getMaxV());
+  }
+  end();
+  current.bind();
+}","The original code calls `flush()` incorrectly, disrupting rendering state and potentially causing rendering inconsistencies. The fixed code replaces `flush()` with `begin()` and `end()`, which properly manages rendering context and ensures correct texture drawing sequence. These changes provide more robust rendering control, preventing potential graphics artifacts and maintaining cleaner rendering state management."
+97003,"/** 
+ * A private method to handle the creation of GLFW windows. Takes care of creating the window with windowing hints, a size, a title, fullscreen or not, parent window to share the context, and whether initially visible or not.
+ * @param width     The width of the window
+ * @param height    The height of the window
+ * @param title     The title of the window
+ * @param monitor   The monitor to create the window on
+ * @param parent    The parent window, if the context needs to be shared
+ * @param visible   Is the window visible upon creation?
+ * @param resizable Is the window resizable?
+ * @return A window handle. (GLFWWindow* as in C++, but this is Java, so a long)
+ */
+private static long createWindow(int width,int height,String title,long monitor,long parent,boolean visible,boolean resizable){
+  glfwWindowHint(GLFW_SAMPLES,4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,2);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_VISIBLE,visible ? GL_TRUE : GL_FALSE);
+  glfwWindowHint(GLFW_RESIZABLE,resizable ? GL_TRUE : GL_FALSE);
+  long window=glfwCreateWindow(width,height,title,monitor,parent);
+  if (window == NULL)   throw new SilenceException(""String_Node_Str"");
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
+  GLContext.createFromCurrent();
+  GL3Context.enable(GL_BLEND);
+  GL3Context.blendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  GL3Context.viewport(0,0,width,height);
+  if (Game.getBatcher() == null)   Game.setBatcher(new Batcher());
+  if (Program.DEFAULT == null)   Program.loadDefaultProgram();
+  if (Texture.EMPTY == null)   Texture.loadNullTexture();
+  releaseCallbacks();
+  glfwSetWindowSizeCallback(window,winSizeCallback=GLFWWindowSizeCallback((win,w,h) -> {
+    Display.width=w;
+    Display.height=h;
+    resized=true;
+  }
+));
+  glfwSetKeyCallback(window,winKeyCallback=GLFWKeyCallback(Keyboard::glfwKeyCallback));
+  glfwSetWindowPosCallback(window,winPosCallback=GLFWWindowPosCallback((win,xPos,yPos) -> {
+    Display.posX=xPos;
+    Display.posY=yPos;
+  }
+));
+  glfwSetCursorPosCallback(window,winCurPosCallback=GLFWCursorPosCallback(Mouse::glfwCursorCallback));
+  glfwSetScrollCallback(window,winScrollCallback=GLFWScrollCallback(Mouse::glfwScrollCallback));
+  glfwSetMouseButtonCallback(window,winMouseButtonCallback=GLFWMouseButtonCallback(Mouse::glfwMouseButtonCallback));
+  return window;
+}","/** 
+ * A private method to handle the creation of GLFW windows. Takes care of creating the window with windowing hints, a size, a title, fullscreen or not, parent window to share the context, and whether initially visible or not.
+ * @param width     The width of the window
+ * @param height    The height of the window
+ * @param title     The title of the window
+ * @param monitor   The monitor to create the window on
+ * @param parent    The parent window, if the context needs to be shared
+ * @param visible   Is the window visible upon creation?
+ * @param resizable Is the window resizable?
+ * @return A window handle. (GLFWWindow* as in C++, but this is Java, so a long)
+ */
+private static long createWindow(int width,int height,String title,long monitor,long parent,boolean visible,boolean resizable){
+  if (Game.getBatcher() != null)   Game.getBatcher().dispose();
+  glfwWindowHint(GLFW_SAMPLES,4);
+  if (System.getProperty(""String_Node_Str"").toLowerCase().contains(""String_Node_Str"")) {
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,2);
+  }
+ else {
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
+  }
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_VISIBLE,visible ? GL_TRUE : GL_FALSE);
+  glfwWindowHint(GLFW_RESIZABLE,resizable ? GL_TRUE : GL_FALSE);
+  if (Game.development) {
+    System.setProperty(""String_Node_Str"",""String_Node_Str"");
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT,GL_TRUE);
+  }
+  long window=glfwCreateWindow(width,height,title,monitor,parent);
+  if (window == NULL)   throw new SilenceException(""String_Node_Str"");
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
+  GLContext.createFromCurrent();
+  GL3Context.enable(GL_BLEND);
+  GL3Context.blendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  GL3Context.viewport(0,0,width,height);
+  Game.setBatcher(new Batcher());
+  if (Program.DEFAULT == null)   Program.loadDefaultProgram();
+  if (Texture.EMPTY == null)   Texture.loadNullTexture();
+  releaseCallbacks();
+  glfwSetWindowSizeCallback(window,winSizeCallback=GLFWWindowSizeCallback((win,w,h) -> {
+    Display.width=w;
+    Display.height=h;
+    resized=true;
+  }
+));
+  glfwSetKeyCallback(window,winKeyCallback=GLFWKeyCallback(Keyboard::glfwKeyCallback));
+  glfwSetWindowPosCallback(window,winPosCallback=GLFWWindowPosCallback((win,xPos,yPos) -> {
+    Display.posX=xPos;
+    Display.posY=yPos;
+  }
+));
+  glfwSetCursorPosCallback(window,winCurPosCallback=GLFWCursorPosCallback(Mouse::glfwCursorCallback));
+  glfwSetScrollCallback(window,winScrollCallback=GLFWScrollCallback(Mouse::glfwScrollCallback));
+  glfwSetMouseButtonCallback(window,winMouseButtonCallback=GLFWMouseButtonCallback(Mouse::glfwMouseButtonCallback));
+  return window;
+}","The original code lacked proper resource management and error handling, potentially causing memory leaks and initialization issues. The fixed code adds explicit resource disposal, development mode configuration, OpenGL context versioning flexibility, and additional error handling through system property checks and debug context setup. These modifications enhance the method's robustness, provide better development diagnostics, and ensure clean resource management during window creation."
+97004,"/** 
+ * Starts the game. Initiates the game life-cycle and starts the main game-loop.
+ */
+public void start(){
+  running=true;
+  Display.create();
+  Display.show();
+  init();
+  final double frameTime=1.0 / targetUPS;
+  double currentTime;
+  double previousTime;
+  double elapsed;
+  double lag=0;
+  double lastUPSUpdate=0;
+  double lastFPSUpdate=0;
+  int updatesProcessed=0;
+  int framesProcessed=0;
+  previousTime=TimeUtils.currentSeconds();
+  while (true) {
+    if (Display.isCloseRequested() || !isRunning())     break;
+    if (Display.wasResized()) {
+      GL3Context.viewport(0,0,Display.getWidth(),Display.getHeight());
+      resize();
+    }
+    currentTime=TimeUtils.currentSeconds();
+    elapsed=currentTime - previousTime;
+    lag+=elapsed;
+    while (lag > frameTime) {
+      Keyboard.startEventFrame();
+      Mouse.startEventFrame();
+      update((float)elapsed);
+      GameTimer.updateTimers((float)elapsed);
+      Keyboard.clearEventFrame();
+      Mouse.clearEventFrame();
+      updatesProcessed++;
+      lag-=frameTime;
+      if (currentTime - lastUPSUpdate >= 1000) {
+        ups=updatesProcessed;
+        updatesProcessed=0;
+        lastUPSUpdate=currentTime;
+      }
+    }
+    float lagOffset=(float)(lag / frameTime);
+    GL3Context.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Texture.setActiveUnit(0);
+    render(lagOffset,batcher);
+    framesProcessed++;
+    if (currentTime - lastFPSUpdate >= 1000) {
+      fps=framesProcessed;
+      framesProcessed=0;
+      lastFPSUpdate=currentTime;
+    }
+    Display.update();
+    previousTime=currentTime;
+  }
+  batcher.dispose();
+  dispose();
+  Display.destroy();
+}","/** 
+ * Starts the game. Initiates the game life-cycle and starts the main game-loop.
+ */
+public void start(){
+  running=true;
+  Display.create();
+  Display.show();
+  System.out.println(glGetString(GL_VERSION));
+  init();
+  final double frameTime=1.0 / targetUPS;
+  double currentTime;
+  double previousTime;
+  double elapsed;
+  double lag=0;
+  double lastUPSUpdate=0;
+  double lastFPSUpdate=0;
+  int updatesProcessed=0;
+  int framesProcessed=0;
+  previousTime=TimeUtils.currentSeconds();
+  while (true) {
+    if (Display.isCloseRequested() || !isRunning())     break;
+    if (Display.wasResized()) {
+      GL3Context.viewport(0,0,Display.getWidth(),Display.getHeight());
+      resize();
+    }
+    currentTime=TimeUtils.currentSeconds();
+    elapsed=currentTime - previousTime;
+    lag+=elapsed;
+    while (lag > frameTime) {
+      Keyboard.startEventFrame();
+      Mouse.startEventFrame();
+      update((float)elapsed);
+      GameTimer.updateTimers((float)elapsed);
+      Keyboard.clearEventFrame();
+      Mouse.clearEventFrame();
+      updatesProcessed++;
+      lag-=frameTime;
+      if (currentTime - lastUPSUpdate >= 1000) {
+        ups=updatesProcessed;
+        updatesProcessed=0;
+        lastUPSUpdate=currentTime;
+      }
+    }
+    float lagOffset=(float)(lag / frameTime);
+    GL3Context.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Texture.setActiveUnit(0);
+    render(lagOffset,batcher);
+    framesProcessed++;
+    if (currentTime - lastFPSUpdate >= 1000) {
+      fps=framesProcessed;
+      framesProcessed=0;
+      lastFPSUpdate=currentTime;
+    }
+    Display.update();
+    previousTime=currentTime;
+  }
+  batcher.dispose();
+  dispose();
+  Display.destroy();
+}","The original code lacked a crucial OpenGL version check, which could lead to potential rendering or compatibility issues. The fixed code adds `System.out.println(glGetString(GL_VERSION))` to explicitly print and verify the OpenGL version during initialization. This simple addition provides critical diagnostic information about the graphics context, helping developers identify potential graphics system configuration problems before rendering begins."
+97005,"/** 
+ * Loads the natives from the JAR resources
+ */
+public static void load(){
+  if (System.getProperty(""String_Node_Str"",""String_Node_Str"").equalsIgnoreCase(""String_Node_Str""))   return;
+  try {
+    File tmp=Files.createTempDirectory(""String_Node_Str"").toFile();
+    tmp.deleteOnExit();
+    if (OS.contains(""String_Node_Str"")) {
+      if (ARCH.contains(""String_Node_Str"")) {
+        extractLibrary(tmp,""String_Node_Str"");
+        extractLibrary(tmp,""String_Node_Str"");
+      }
+ else {
+        extractLibrary(tmp,""String_Node_Str"");
+        extractLibrary(tmp,""String_Node_Str"");
+      }
+    }
+ else     if (OS.contains(""String_Node_Str"")) {
+      extractLibrary(tmp,""String_Node_Str"");
+      extractLibrary(tmp,""String_Node_Str"");
+    }
+ else     if (OS.contains(""String_Node_Str"")) {
+      if (ARCH.contains(""String_Node_Str"")) {
+        extractLibrary(tmp,""String_Node_Str"");
+        extractLibrary(tmp,""String_Node_Str"");
+      }
+ else {
+        extractLibrary(tmp,""String_Node_Str"");
+        extractLibrary(tmp,""String_Node_Str"");
+      }
+    }
+    System.setProperty(""String_Node_Str"",tmp.getAbsolutePath());
+  }
+ catch (  Exception e) {
+    throw new SilenceException(e.getMessage());
+  }
+}","/** 
+ * Loads the natives from the JAR resources
+ */
+public static void load(){
+  if (System.getProperty(""String_Node_Str"",""String_Node_Str"").equalsIgnoreCase(""String_Node_Str""))   return;
+  try {
+    File tmp=Files.createTempDirectory(""String_Node_Str"").toFile();
+    tmp.deleteOnExit();
+    if (isWindows) {
+      if (!is64Bit) {
+        extractLibrary(tmp,""String_Node_Str"");
+        extractLibrary(tmp,""String_Node_Str"");
+      }
+ else {
+        extractLibrary(tmp,""String_Node_Str"");
+        extractLibrary(tmp,""String_Node_Str"");
+      }
+    }
+ else     if (isMac) {
+      extractLibrary(tmp,""String_Node_Str"");
+      extractLibrary(tmp,""String_Node_Str"");
+    }
+ else     if (isLinux) {
+      if (!is64Bit) {
+        extractLibrary(tmp,""String_Node_Str"");
+        extractLibrary(tmp,""String_Node_Str"");
+      }
+ else {
+        extractLibrary(tmp,""String_Node_Str"");
+        extractLibrary(tmp,""String_Node_Str"");
+      }
+    }
+    System.setProperty(""String_Node_Str"",tmp.getAbsolutePath());
+  }
+ catch (  Exception e) {
+    SilenceException.reThrow(e);
+  }
+}","The original code uses placeholder strings like ""String_Node_Str"" instead of actual operating system and architecture detection, making the library loading mechanism non-functional. The fixed code replaces placeholders with meaningful boolean flags like `isWindows`, `isMac`, `isLinux`, and `is64Bit`, enabling proper conditional library extraction based on the current system environment. By using concrete system detection and standardizing exception handling with `SilenceException.reThrow()`, the code becomes more robust, reliable, and capable of dynamically loading native libraries across different platforms."
+97006,"private static void releaseCallbacks(){
+  if (winSizeCallback != null)   winSizeCallback.release();
+  if (winKeyCallback != null)   winKeyCallback.release();
+  if (winPosCallback != null)   winPosCallback.release();
+  if (winCurPosCallback != null)   winCurPosCallback.release();
+  if (winScrollCallback != null)   winScrollCallback.release();
+  if (winMouseButtonCallback != null)   winMouseButtonCallback.release();
+}","/** 
+ * Used to release GLFW callbacks. This is necessary to prevent segmentation fault errors in native code.
+ */
+private static void releaseCallbacks(){
+  if (winSizeCallback != null)   winSizeCallback.release();
+  if (winKeyCallback != null)   winKeyCallback.release();
+  if (winPosCallback != null)   winPosCallback.release();
+  if (winCurPosCallback != null)   winCurPosCallback.release();
+  if (winScrollCallback != null)   winScrollCallback.release();
+  if (winMouseButtonCallback != null)   winMouseButtonCallback.release();
+}","The original code appears functionally identical to the fixed version, with no apparent bug or modification. The added comment provides clarity about the method's purpose of releasing GLFW callbacks to prevent potential segmentation fault errors in native code. The fixed version enhances code readability and maintainability by including a descriptive documentation comment that explains the method's critical role in preventing memory-related issues during callback management."
+97007,"/** 
+ * Starts the game. Initiates the game life-cycle and starts the main game-loop.
+ */
+public void start(){
+  running=true;
+  Display.create();
+  Display.show();
+  init();
+  final double frameTime=1.0 / targetUPS;
+  double currentTime;
+  double previousTime;
+  double elapsed;
+  double lag=0;
+  double lastUPSUpdate=0;
+  double lastFPSUpdate=0;
+  int updatesProcessed=0;
+  int framesProcessed=0;
+  previousTime=0;
+  while (true) {
+    if (Display.isCloseRequested() || !isRunning())     break;
+    if (Display.wasResized()) {
+      GL3Context.viewport(0,0,Display.getWidth(),Display.getHeight());
+      resize();
+    }
+    currentTime=TimeUtils.currentSeconds();
+    elapsed=currentTime - previousTime;
+    lag+=elapsed;
+    while (lag > frameTime) {
+      Keyboard.startEventFrame();
+      Mouse.startEventFrame();
+      update((float)elapsed);
+      Keyboard.clearEventFrame();
+      Mouse.clearEventFrame();
+      updatesProcessed++;
+      lag-=frameTime;
+      if (currentTime - lastUPSUpdate >= 1000) {
+        ups=updatesProcessed;
+        updatesProcessed=0;
+        lastUPSUpdate=currentTime;
+      }
+    }
+    GL3Context.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Texture.setActiveUnit(0);
+    render((float)elapsed,batcher);
+    framesProcessed++;
+    if (currentTime - lastFPSUpdate >= 1000) {
+      fps=framesProcessed;
+      framesProcessed=0;
+      lastFPSUpdate=currentTime;
+    }
+    Display.update();
+    previousTime=currentTime;
+  }
+  batcher.dispose();
+  dispose();
+  Display.destroy();
+}","/** 
+ * Starts the game. Initiates the game life-cycle and starts the main game-loop.
+ */
+public void start(){
+  running=true;
+  Display.create();
+  Display.show();
+  init();
+  final double frameTime=1.0 / targetUPS;
+  double currentTime;
+  double previousTime;
+  double elapsed;
+  double lag=0;
+  double lastUPSUpdate=0;
+  double lastFPSUpdate=0;
+  int updatesProcessed=0;
+  int framesProcessed=0;
+  previousTime=0;
+  while (true) {
+    if (Display.isCloseRequested() || !isRunning())     break;
+    if (Display.wasResized()) {
+      GL3Context.viewport(0,0,Display.getWidth(),Display.getHeight());
+      resize();
+    }
+    currentTime=TimeUtils.currentSeconds();
+    elapsed=currentTime - previousTime;
+    lag+=elapsed;
+    while (lag > frameTime) {
+      Keyboard.startEventFrame();
+      Mouse.startEventFrame();
+      update((float)elapsed);
+      Keyboard.clearEventFrame();
+      Mouse.clearEventFrame();
+      updatesProcessed++;
+      lag-=frameTime;
+      if (currentTime - lastUPSUpdate >= 1000) {
+        ups=updatesProcessed;
+        updatesProcessed=0;
+        lastUPSUpdate=currentTime;
+      }
+    }
+    float lagOffset=(float)(lag / frameTime);
+    GL3Context.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Texture.setActiveUnit(0);
+    render(lagOffset,batcher);
+    framesProcessed++;
+    if (currentTime - lastFPSUpdate >= 1000) {
+      fps=framesProcessed;
+      framesProcessed=0;
+      lastFPSUpdate=currentTime;
+    }
+    Display.update();
+    previousTime=currentTime;
+  }
+  batcher.dispose();
+  dispose();
+  Display.destroy();
+}","The original code rendered using the raw elapsed time, which can lead to inconsistent and jerky rendering during variable frame rates. The fixed code introduces a `lagOffset` calculated as a fraction of the target frame time, allowing for smoother interpolation between game states during rendering. This improvement provides more consistent visual updates by accounting for the partial progress between update steps, resulting in a more fluid and predictable game rendering experience."
+97008,"/** 
+ * A private method to handle the creation of GLFW windows. Takes care of creating the window with windowing hints, a size, a title, fullscreen or not, parent window to share the context, and whether initially visible or not.
+ * @param width    The width of the window
+ * @param height   The height of the window
+ * @param title    The title of the window
+ * @param monitor  The monitor to create the window on
+ * @param parent   The parent window, if the context needs to be shared
+ * @param visible  Is the window visible upon creation?
+ * @return A window handle. (GLFWWindow* as in C++, but this is Java, so a long)
+ */
+private static long createWindow(int width,int height,String title,long monitor,long parent,boolean visible){
+  glfwWindowHint(GLFW_SAMPLES,4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,2);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_VISIBLE,visible ? GL_TRUE : GL_FALSE);
+  long window=glfwCreateWindow(width,height,title,monitor,parent);
+  if (window == NULL)   throw new SilenceException(""String_Node_Str"");
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
+  GLContext.createFromCurrent();
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_DEPTH_TEST);
+  GLError.check();
+  if (Game.getBatcher() == null)   Game.setBatcher(new Batcher());
+  if (Program.DEFAULT == null)   Program.loadDefaultProgram();
+  if (Texture.EMPTY == null)   Texture.loadNullTexture();
+  Program.DEFAULT.use();
+  Texture.EMPTY.bind();
+  if (winSizeCallback != null)   winSizeCallback.release();
+  if (winKeyCallback != null)   winKeyCallback.release();
+  if (winPosCallback != null)   winPosCallback.release();
+  if (winCurPosCallback != null)   winCurPosCallback.release();
+  glfwSetWindowSizeCallback(window,winSizeCallback=GLFWWindowSizeCallback((win,w,h) -> {
+    Display.width=width;
+    Display.height=height;
+    resized=true;
+  }
+));
+  glfwSetKeyCallback(window,winKeyCallback=GLFWKeyCallback((win,key,scanCode,action,mods) -> Keyboard.setKey(key,action != GLFW_RELEASE)));
+  glfwSetWindowPosCallback(window,winPosCallback=GLFWWindowPosCallback((win,xPos,yPos) -> {
+    Display.posX=xPos;
+    Display.posY=yPos;
+  }
+));
+  glfwSetCursorPosCallback(window,winCurPosCallback=GLFWCursorPosCallback((win,xPos,yPos) -> {
+    mouseX=(int)xPos;
+    mouseY=(int)yPos;
+  }
+));
+  return window;
+}","/** 
+ * A private method to handle the creation of GLFW windows. Takes care of creating the window with windowing hints, a size, a title, fullscreen or not, parent window to share the context, and whether initially visible or not.
+ * @param width    The width of the window
+ * @param height   The height of the window
+ * @param title    The title of the window
+ * @param monitor  The monitor to create the window on
+ * @param parent   The parent window, if the context needs to be shared
+ * @param visible  Is the window visible upon creation?
+ * @return A window handle. (GLFWWindow* as in C++, but this is Java, so a long)
+ */
+private static long createWindow(int width,int height,String title,long monitor,long parent,boolean visible){
+  glfwWindowHint(GLFW_SAMPLES,4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,2);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_VISIBLE,visible ? GL_TRUE : GL_FALSE);
+  long window=glfwCreateWindow(width,height,title,monitor,parent);
+  if (window == NULL)   throw new SilenceException(""String_Node_Str"");
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
+  GLContext.createFromCurrent();
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_DEPTH_TEST);
+  GLError.check();
+  if (Game.getBatcher() == null)   Game.setBatcher(new Batcher());
+  if (Program.DEFAULT == null)   Program.loadDefaultProgram();
+  if (Texture.EMPTY == null)   Texture.loadNullTexture();
+  Program.CURRENT=null;
+  Texture.CURRENT=null;
+  Program.DEFAULT.use();
+  Texture.EMPTY.bind();
+  if (winSizeCallback != null)   winSizeCallback.release();
+  if (winKeyCallback != null)   winKeyCallback.release();
+  if (winPosCallback != null)   winPosCallback.release();
+  if (winCurPosCallback != null)   winCurPosCallback.release();
+  glfwSetWindowSizeCallback(window,winSizeCallback=GLFWWindowSizeCallback((win,w,h) -> {
+    Display.width=width;
+    Display.height=height;
+    resized=true;
+  }
+));
+  glfwSetKeyCallback(window,winKeyCallback=GLFWKeyCallback((win,key,scanCode,action,mods) -> Keyboard.setKey(key,action != GLFW_RELEASE)));
+  glfwSetWindowPosCallback(window,winPosCallback=GLFWWindowPosCallback((win,xPos,yPos) -> {
+    Display.posX=xPos;
+    Display.posY=yPos;
+  }
+));
+  glfwSetCursorPosCallback(window,winCurPosCallback=GLFWCursorPosCallback((win,xPos,yPos) -> {
+    mouseX=(int)xPos;
+    mouseY=(int)yPos;
+  }
+));
+  return window;
+}","The original code lacked proper state management for the current Program and Texture, potentially leading to rendering inconsistencies. The fixed code introduces `Program.CURRENT=null` and `Texture.CURRENT=null` before calling `use()` and `bind()`, ensuring a clean state reset before setting new rendering contexts. This change guarantees more predictable and reliable OpenGL state management, preventing potential rendering artifacts or unexpected behavior during window creation."
+97009,"/** 
+ * Initialises VAOs and VBOs and creates the data store to store the entire batch.
+ */
+private void initGLHandles(){
+  vao=new VertexArrayObject();
+  vao.bind();
+  vboVert=new VertexBufferObject(GL_ARRAY_BUFFER);
+  vboCol=new VertexBufferObject(GL_ARRAY_BUFFER);
+  vboTex=new VertexBufferObject(GL_ARRAY_BUFFER);
+  vboVert.bind();
+  vboVert.uploadData(SIZE_OF_VERTEX * MAX_VERTICES_IN_BATCH,GL_STREAM_DRAW);
+  vboCol.bind();
+  vboCol.uploadData(SIZE_OF_COLOR * MAX_VERTICES_IN_BATCH,GL_STREAM_DRAW);
+  vboTex.bind();
+  vboTex.uploadData(SIZE_OF_TEXCOORD * MAX_VERTICES_IN_BATCH,GL_STREAM_DRAW);
+}","/** 
+ * Initialises VAOs and VBOs and creates the data store to store the entire batch.
+ */
+private void initGLHandles(){
+  vao=new VertexArrayObject();
+  vao.bind();
+  vboVert=new VertexBufferObject(GL_ARRAY_BUFFER);
+  vboCol=new VertexBufferObject(GL_ARRAY_BUFFER);
+  vboTex=new VertexBufferObject(GL_ARRAY_BUFFER);
+  vboNorm=new VertexBufferObject(GL_ARRAY_BUFFER);
+  vboVert.bind();
+  vboVert.uploadData(SIZE_OF_VERTEX * MAX_VERTICES_IN_BATCH,GL_STREAM_DRAW);
+  vboCol.bind();
+  vboCol.uploadData(SIZE_OF_COLOR * MAX_VERTICES_IN_BATCH,GL_STREAM_DRAW);
+  vboTex.bind();
+  vboTex.uploadData(SIZE_OF_TEXCOORD * MAX_VERTICES_IN_BATCH,GL_STREAM_DRAW);
+  vboNorm.bind();
+  vboNorm.uploadData(SIZE_OF_NORMAL * MAX_VERTICES_IN_BATCH,GL_STREAM_DRAW);
+}","The original code lacks a Vertex Buffer Object (VBO) for storing normal vectors, which are crucial for lighting and shading calculations in 3D graphics. The fixed code introduces vboNorm, a new VBO specifically allocated for normal vector data, and initializes it with the appropriate buffer size using SIZE_OF_NORMAL. This addition ensures comprehensive vertex attribute storage, enabling more advanced rendering techniques and improving the overall rendering pipeline's completeness and flexibility."
+97010,"/** 
+ * Uploads the data collected to the OpenGL buffers.
+ */
+private void uploadData(){
+  vboVert.bind();
+  vboVert.uploadSubData(vBuffer,0);
+  vao.pointAttribute(0,4,GL_FLOAT,vboVert);
+  vboCol.bind();
+  vboCol.uploadSubData(cBuffer,0);
+  vao.pointAttribute(1,4,GL_FLOAT,vboCol);
+  vboTex.bind();
+  vboTex.uploadSubData(tBuffer,0);
+  vao.pointAttribute(2,2,GL_FLOAT,vboTex);
+}","/** 
+ * Uploads the data collected to the OpenGL buffers.
+ */
+private void uploadData(){
+  vboVert.bind();
+  vboVert.uploadSubData(vBuffer,0);
+  vao.pointAttribute(vertexLocation,4,GL_FLOAT,vboVert);
+  vboCol.bind();
+  vboCol.uploadSubData(cBuffer,0);
+  vao.pointAttribute(colorLocation,4,GL_FLOAT,vboCol);
+  vboTex.bind();
+  vboTex.uploadSubData(tBuffer,0);
+  vao.pointAttribute(texCoordLocation,2,GL_FLOAT,vboTex);
+  vboNorm.bind();
+  vboNorm.uploadSubData(nBuffer,0);
+  vao.pointAttribute(normalLocation,4,GL_FLOAT,vboNorm);
+}","The original code hardcoded attribute locations (0, 1, 2) for vertex, color, and texture coordinates, which lacks flexibility and might not match shader requirements. The fixed code introduces named location variables (vertexLocation, colorLocation, texCoordLocation, normalLocation) that can be dynamically configured and allow more precise shader attribute mapping. By using configurable attribute locations and adding normal buffer handling, the revised implementation provides a more robust and adaptable OpenGL buffer upload mechanism."
+97011,"/** 
+ * Flushes the data collected to the GPU.
+ */
+public void flush(){
+  if (vertexCount == 0)   return;
+  fillBuffers();
+  Program.CURRENT.setupUniforms();
+  vBuffer.flip();
+  cBuffer.flip();
+  tBuffer.flip();
+  vao.bind();
+  vao.enableAttributeArray(0);
+  vao.enableAttributeArray(1);
+  vao.enableAttributeArray(2);
+  uploadData();
+  glDrawArrays(beginMode.getGlPrimitive(),0,vertexCount);
+  GLError.check();
+  vao.disableAttributeArray(0);
+  vao.disableAttributeArray(1);
+  vao.disableAttributeArray(2);
+  glBindVertexArray(0);
+  GLError.check();
+  vBuffer.clear();
+  cBuffer.clear();
+  tBuffer.clear();
+  vertexCount=0;
+  colorCount=0;
+  texCoordCount=0;
+}","/** 
+ * Flushes the data collected to the GPU.
+ */
+public void flush(){
+  if (vertexCount == 0)   return;
+  fillBuffers();
+  Program.CURRENT.prepareFrame();
+  vBuffer.flip();
+  cBuffer.flip();
+  tBuffer.flip();
+  nBuffer.flip();
+  vao.bind();
+  vao.enableAttributeArray(vertexLocation);
+  vao.enableAttributeArray(colorLocation);
+  vao.enableAttributeArray(texCoordLocation);
+  vao.enableAttributeArray(normalLocation);
+  uploadData();
+  glDrawArrays(beginMode.getGlPrimitive(),0,vertexCount);
+  GLError.check();
+  vao.disableAttributeArray(vertexLocation);
+  vao.disableAttributeArray(colorLocation);
+  vao.disableAttributeArray(texCoordLocation);
+  vao.disableAttributeArray(normalLocation);
+  glBindVertexArray(0);
+  GLError.check();
+  vBuffer.clear();
+  cBuffer.clear();
+  tBuffer.clear();
+  nBuffer.clear();
+  vertexCount=0;
+  colorCount=0;
+  texCoordCount=0;
+  normalCount=0;
+}","The original code lacks support for normal buffer handling and uses hardcoded attribute indices, limiting flexibility and rendering capabilities. The fixed code introduces explicit attribute location variables, adds normal buffer flipping and clearing, and calls `prepareFrame()` instead of `setupUniforms()` for more comprehensive shader preparation. These modifications enhance rendering flexibility, improve shader setup, and enable four-attribute rendering with proper buffer management."
+97012,"/** 
+ * Creates the Batcher, and initialises OpenGL
+ */
+public Batcher(){
+  vBuffer=BufferUtils.createFloatBuffer(SIZE_OF_VERTEX * MAX_VERTICES_IN_BATCH);
+  cBuffer=BufferUtils.createFloatBuffer(SIZE_OF_COLOR * MAX_VERTICES_IN_BATCH);
+  tBuffer=BufferUtils.createFloatBuffer(SIZE_OF_TEXCOORD * MAX_VERTICES_IN_BATCH);
+  transform=new Transform();
+  initGLHandles();
+}","/** 
+ * Creates the Batcher, and initialises OpenGL
+ */
+public Batcher(){
+  vBuffer=BufferUtils.createFloatBuffer(SIZE_OF_VERTEX * MAX_VERTICES_IN_BATCH);
+  cBuffer=BufferUtils.createFloatBuffer(SIZE_OF_COLOR * MAX_VERTICES_IN_BATCH);
+  tBuffer=BufferUtils.createFloatBuffer(SIZE_OF_TEXCOORD * MAX_VERTICES_IN_BATCH);
+  nBuffer=BufferUtils.createFloatBuffer(SIZE_OF_NORMAL * MAX_VERTICES_IN_BATCH);
+  transform=new Transform();
+  initGLHandles();
+}","The original code omitted the normal buffer (nBuffer) allocation, which is crucial for storing vertex normal data in 3D graphics rendering. The fixed code adds nBuffer initialization using BufferUtils.createFloatBuffer(), with SIZE_OF_NORMAL and MAX_VERTICES_IN_BATCH parameters to ensure proper memory allocation for normal vector information. This correction ensures complete vertex attribute preparation, enabling more accurate lighting and shading calculations in the rendering pipeline."
+97013,"private void fillBuffers(){
+  Color col=texCoordCount == vertexCount ? Color.TRANSPARENT : Color.WHITE;
+  while (colorCount < vertexCount) {
+    cBuffer.put(col.getR()).put(col.getG()).put(col.getB()).put(col.getA());
+    colorCount++;
+  }
+  while (texCoordCount < vertexCount) {
+    tBuffer.put(0).put(0);
+    texCoordCount++;
+  }
+}","private void fillBuffers(){
+  Color col=texCoordCount == vertexCount ? Color.TRANSPARENT : Color.WHITE;
+  while (colorCount < vertexCount) {
+    cBuffer.put(col.getR()).put(col.getG()).put(col.getB()).put(col.getA());
+    colorCount++;
+  }
+  while (texCoordCount < vertexCount) {
+    tBuffer.put(0).put(0);
+    texCoordCount++;
+  }
+  while (normalCount < vertexCount) {
+    nBuffer.put(0).put(0).put(0).put(0);
+    normalCount++;
+  }
+}","The original code lacks handling for normal buffer population, potentially leading to incomplete vertex data initialization. The fixed code adds a third while loop that fills the normal buffer with zero values until it matches the vertex count, ensuring all vertex attributes are consistently populated. This modification provides a more robust and complete buffer initialization process, preventing potential rendering or data consistency issues."
+97014,"public void drawString(Batcher b,String text,float x,float y,Color col){
+  Texture current=Texture.CURRENT;
+  b.begin();
+{
+    fontTexture.bind();
+    float startX=x;
+    for (    char ch : text.toCharArray()) {
+      FontChar c=chars[(int)ch];
+      if (ch == '\n') {
+        y+=fontMetrics.getHeight();
+        x=startX;
+        continue;
+      }
+      float minU=c.x / fontTexture.getWidth();
+      float maxU=(c.x + c.w + 2) / fontTexture.getWidth();
+      float minV=c.y / fontTexture.getHeight();
+      float maxV=(c.y + c.h) / fontTexture.getHeight();
+      b.drawTexture2d(fontTexture.getSubTexture(minU,minV,maxU,maxV),new Vector2(x,y),col);
+      x+=c.w;
+    }
+  }
+  b.end();
+  current.bind();
+}","public void drawString(Batcher b,String text,float x,float y,Color col){
+  Texture current=Texture.CURRENT;
+  b.begin();
+{
+    fontTexture.bind();
+    float startX=x;
+    for (    char ch : text.toCharArray()) {
+      FontChar c=chars[(int)ch];
+      if (ch == '\n') {
+        y+=fontMetrics.getHeight();
+        x=startX;
+        continue;
+      }
+      float minU=c.x / fontTexture.getWidth();
+      float maxU=(c.x + c.w) / fontTexture.getWidth();
+      float minV=c.y / fontTexture.getHeight();
+      float maxV=(c.y + c.h) / fontTexture.getHeight();
+      b.drawTexture2d(fontTexture.getSubTexture(minU,minV,maxU,maxV),new Vector2(x,y),col);
+      x+=c.w;
+    }
+  }
+  b.end();
+  current.bind();
+}","The original code incorrectly added 2 pixels to the maxU calculation when computing texture coordinates, which could cause texture bleeding or incorrect character rendering. The fixed code removes the unnecessary ""+2"" from the maxU calculation, ensuring precise texture coordinate mapping for each character. By correctly calculating the texture coordinates, the fixed code prevents potential visual artifacts and ensures accurate glyph rendering in the font drawing method."
+97015,"public void use(){
+  if (CURRENT == this)   return;
+  if (disposed)   throw new GLException(""String_Node_Str"");
+  glUseProgram(id);
+  GLError.check();
+  CURRENT=this;
+  setupUniforms();
+}","public void use(){
+  if (CURRENT == this)   return;
+  if (disposed)   throw new GLException(""String_Node_Str"");
+  glUseProgram(id);
+  GLError.check();
+  CURRENT=this;
+  prepareFrame();
+}","The original code lacks a proper frame preparation method, potentially leaving uniform values unset or stale before program activation. The fixed code replaces `setupUniforms()` with `prepareFrame()`, ensuring comprehensive uniform and state initialization before shader program use. This change guarantees consistent and up-to-date rendering state, preventing potential rendering inconsistencies or unexpected shader behavior."
+97016,"public static void init(){
+  transform=new Transform();
+  children=new ArrayList<>();
+}","public static void init(){
+  transform=new Transform();
+  children=new ArrayList<>();
+  Program.CURRENT=null;
+  Texture.CURRENT=null;
+  Program.DEFAULT.use();
+  Texture.EMPTY.bind();
+}","The original code only initialized transform and children, leaving critical program state undefined. The fixed code adds reset steps for Program.CURRENT, Texture.CURRENT, sets default program, and binds empty texture to ensure a clean, predictable initial state. These additional initialization steps provide consistent starting conditions, preventing potential rendering or resource management errors during program startup."
+97017,"public Circle(float x,float y,float radius){
+  this.x=x;
+  this.y=y;
+  this.radius=radius;
+}","public Circle(float x,float y,float radius){
+  this.x=x;
+  this.y=y;
+  this.radius=radius;
+  setPosition(new Vector2(x,y));
+  updateVertices();
+}","The original code only initializes circle properties without properly setting its position and updating its vertices, which can lead to rendering or positioning inconsistencies. The fixed code adds `setPosition(new Vector2(x,y))` and `updateVertices()` to ensure the circle's graphical representation is correctly aligned with its coordinate data. These additional method calls guarantee that the circle's visual and spatial attributes are synchronized, preventing potential rendering errors and maintaining geometric accuracy."
+97018,"public void setY(float y){
+  this.y=y;
+}","public void setY(float y){
+  this.y=y;
+  setPosition(new Vector2(x,y));
+}","The original code only updates the y-coordinate value without synchronizing the position vector, potentially causing inconsistencies in object positioning. The fixed code adds a call to setPosition() with a new Vector2 constructed using both x and y coordinates, ensuring the object's graphical representation matches its internal state. This correction guarantees that when the y-coordinate is modified, the complete position is updated simultaneously, preventing rendering and spatial tracking errors."
+97019,"public void setX(float x){
+  this.x=x;
+}","public void setX(float x){
+  this.x=x;
+  setPosition(new Vector2(x,y));
+}","The original code only updated the x-coordinate value without synchronizing the object's actual position, potentially causing position inconsistencies. The fixed code adds a call to setPosition() with a new Vector2 that combines the updated x value and the existing y coordinate, ensuring the object's position is correctly and comprehensively updated. This modification guarantees that the x-coordinate change is immediately reflected in the object's overall position, maintaining data integrity and preventing potential rendering or movement errors."
+97020,"public boolean intersects(Circle c){
+  return (x * c.x + y * c.y) <= (radius + c.radius) * (radius + c.radius);
+}","public boolean intersects(Polygon p){
+  if (p instanceof Circle) {
+    Circle c=(Circle)p;
+    return (((x - c.x) * (x - c.x)) + ((y - c.y) * (y - c.y))) < (radius + c.radius) * (radius + c.radius);
+  }
+ else   return super.intersects(p);
+}","The original code incorrectly calculates circle intersection by using a faulty dot product method, which fails to properly measure the distance between circle centers. The fixed code correctly implements intersection detection by calculating the squared distance between circle centers and comparing it to the squared sum of their radii, using precise Pythagorean distance calculation. This approach provides an accurate geometric test for circle overlap, ensuring mathematical correctness and reliable collision detection."
+97021,"public void setRadius(float radius){
+  this.radius=radius;
+}","public void setRadius(float radius){
+  this.radius=radius;
+  updateVertices();
+}","The original code only sets the radius value without updating the related geometric components, potentially leaving the object in an inconsistent state. The fixed code adds an `updateVertices()` method call, which recalculates and synchronizes the object's vertices based on the new radius value. This ensures that whenever the radius changes, all dependent geometric properties are immediately and automatically refreshed, maintaining data integrity and preventing potential rendering or calculation errors."
+97022,"public void setY(float y){
+  this.y=y;
+}","public void setY(float y){
+  this.y=y;
+  setPosition(new Vector2(x,y));
+}","The original code only updates the y-coordinate value without synchronizing it with the object's actual position, potentially causing positioning inconsistencies. The fixed code adds a call to setPosition(), which updates the entire Vector2 coordinate with both x and y values, ensuring that the object's position is consistently maintained. By explicitly setting the position using both coordinates, the fixed code prevents potential rendering or movement errors and maintains proper spatial representation."
+97023,"public void setX(float x){
+  this.x=x;
+}","public void setX(float x){
+  this.x=x;
+  setPosition(new Vector2(x,y));
+}","The original code only updates the x-coordinate of an object without synchronizing its position, potentially causing inconsistent internal state. The fixed code adds a call to setPosition() with a new Vector2 containing both x and y coordinates, ensuring the object's position is properly updated. This correction guarantees that the object's coordinate representation remains consistent and accurately reflects the intended position change."
+97024,"public boolean intersects(Rectangle r){
+  return (x < r.x + r.width) && (r.x < x + width) && (y < r.y + r.height)&& (r.y < y + height);
+}","public boolean intersects(Polygon p){
+  if (p instanceof Rectangle) {
+    Rectangle r=(Rectangle)p;
+    return (x < r.x + r.width) && (r.x < x + width) && (y < r.y + r.height)&& (r.y < y + height);
+  }
+ else   return super.intersects(p);
+}","The original code lacks a check for the polygon type, which could cause runtime errors when handling non-rectangular polygons. The fixed code adds an instanceof check to handle Rectangle objects specifically, casting the polygon to a Rectangle and applying the intersection logic only for rectangular shapes. This modification ensures type safety and allows proper intersection calculation by delegating to the superclass method for non-rectangular polygons."
+97025,"public Rectangle(float x,float y,float width,float height){
+  this.x=x;
+  this.y=y;
+  this.width=width;
+  this.height=height;
+}","public Rectangle(float x,float y,float width,float height){
+  this.x=x;
+  this.y=y;
+  this.width=width;
+  this.height=height;
+  setPosition(new Vector2(x,y));
+  updateVertices();
+}","The original code only initializes member variables without setting the rectangle's position or updating its vertices, potentially leading to incorrect rendering or collision detection. The fixed code adds `setPosition(new Vector2(x,y))` and `updateVertices()` to ensure the rectangle's position is properly set and its vertex coordinates are calculated based on the input coordinates. These additional method calls guarantee that the rectangle's geometry is correctly established, improving spatial accuracy and rendering reliability."
+97026,"public void setWidth(float width){
+  this.width=width;
+}","public void setWidth(float width){
+  this.width=width;
+  updateVertices();
+}","The original code only sets the width without updating the object's geometric properties, potentially leaving the object in an inconsistent state. The fixed code adds an `updateVertices()` method call, which recalculates the object's vertices to reflect the new width, ensuring geometric integrity. This change guarantees that the width modification triggers a complete update of the object's spatial representation, maintaining data consistency and preventing rendering or calculation errors."
+97027,"public void setHeight(float height){
+  this.height=height;
+}","public void setHeight(float height){
+  this.height=height;
+  updateVertices();
+}","The original code only sets the height attribute without updating the related geometric vertices, potentially leaving the object in an inconsistent state. The fixed code adds an `updateVertices()` method call after setting the height, ensuring that the object's geometric representation synchronizes with the new height value. This update guarantees that when the height changes, all dependent geometric calculations are automatically recalculated, maintaining the object's geometric integrity."
+97028,"@Override public boolean equals(Object o){
+  if (this == o)   return true;
+  if (o == null || getClass() != o.getClass())   return false;
+  Entity2D entity2D=(Entity2D)o;
+  if (!polygon.equals(entity2D.polygon))   return false;
+  if (!position.equals(entity2D.position))   return false;
+  if (!velocity.equals(entity2D.velocity))   return false;
+  return true;
+}","@Override public boolean equals(Object o){
+  if (this == o)   return true;
+  if (o == null || getClass() != o.getClass())   return false;
+  Entity2D entity2D=(Entity2D)o;
+  return polygon.equals(entity2D.polygon) && position.equals(entity2D.position) && velocity.equals(entity2D.velocity);
+}","The original code returns true only if all conditions are met, but explicitly returning true after each comparison prevents a concise, comprehensive equality check. The fixed code replaces multiple conditional checks with a single return statement that combines all equality comparisons using logical AND (&&), ensuring all fields are equal in one evaluation. This simplifies the logic, reduces code complexity, and provides a more readable and efficient equals() method implementation."
+97029,"public Circle(float x,float y,float radius){
+  this.radius=radius;
+  setCenter(new Vector2(x,y));
+  updateVertices();
+}","public Circle(float x,float y,float radius){
+  this.radius=radius;
+  updateVertices();
+  setCenter(new Vector2(x,y));
+}","The original code calls `updateVertices()` after setting the center, which may lead to incorrect vertex calculations based on an uninitialized or partially initialized center position. The fixed code first updates the vertices and then sets the center, ensuring that the vertex calculation happens with the most up-to-date center coordinates. This sequencing guarantees accurate geometric representation and prevents potential rendering or collision detection errors in the circle's initial state."
